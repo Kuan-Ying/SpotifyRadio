@@ -1,4 +1,7 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
 import {
   Loader,
   Image,
@@ -8,75 +11,59 @@ import {
   Header,
 } from 'semantic-ui-react';
 
-import SpotifyService from '../lib/SpotifyService';
+import {
+  SpotifyActionCreators,
+  isLoadingPlayerSelector,
+  currentTrackInfoSelector,
+} from '../redux/modules/spotify';
 
-export default class extends Component {
-  state = {
-    isLoading: true,
-    isPlaying: false,
-
-    // NOTE: should fetch spotifyUri from firebase
-    spotifyUri: 'spotify:track:6i87BCsPUiPLtBqTEK6Y4A',
-    positionMs: 0,
-    albumImg: '',
-    artistsDisplay: '',
-  };
-
-  async componentDidMount() {
-    await SpotifyService.initPlayerAsync('Kuan\'s player');
-    await this.handlePlay();
-    this.setState({ isLoading: false });
-    SpotifyService.player.on('player_state_changed', this.getCurrentTrackInfo);
+class SongTrackCard extends Component {
+  static propTypes = {
+    actions: PropTypes.shape({
+      initPlayerRequest: PropTypes.func.isRequired,
+      togglePlayRequest: PropTypes.func.isRequired,
+    }).isRequired,
+    trackInfo: PropTypes.shape({
+      isPlaying: PropTypes.bool,
+      albumImg: PropTypes.string,
+      artistsDisplayName: PropTypes.string,
+      songName: PropTypes.string,
+    }).isRequired,
+    isLoading: PropTypes.bool.isRequired,
   }
 
-  getCurrentTrackInfo = async () => {
-    const result = await SpotifyService.getCurrentTrackInfo();
-    const {
-      name: songName,
-      album: {
-        images: albumImgs,
-      },
-      artists,
-    } = result;
-    const artistsDisplay = artists.map(({ name }) => name).join(', ');
-    this.setState({
-      songName,
-      albumImg: albumImgs[0].url,
-      artistsDisplay,
-    });
+  componentDidMount() {
+    const { actions: { initPlayerRequest } } = this.props;
+    initPlayerRequest();
   }
 
-  handlePlay = async () => {
-    const { spotifyUri, positionMs } = this.state;
-    await SpotifyService.play({ spotifyUri, positionMs });
-    this.setState({ isPlaying: true });
-    await this.getCurrentTrackInfo();
-  }
-
-  togglePlay = async () => {
-    await SpotifyService.player.togglePlay();
-    const { isPlaying } = this.state;
-    this.setState({ isPlaying: !isPlaying });
+  togglePlay = () => {
+    const { actions: { togglePlayRequest } } = this.props;
+    togglePlayRequest();
   }
 
   render() {
-    const {
-      isLoading,
-      isPlaying,
-      albumImg,
-      artistsDisplay,
-      songName,
-    } = this.state;
+    const { isLoading } = this.props;
 
     if (isLoading) {
       return <Loader active inline="centered" />;
     }
+
+    const {
+      trackInfo: {
+        isPlaying,
+        albumImg,
+        artistsDisplayName,
+        songName,
+      },
+    } = this.props;
+
     return (
       <Card centered>
         <Segment inverted textAlign="center">
           <Image src={albumImg} />
           <Header as="h3">{songName}</Header>
-          <Header as="h4" inverted color="grey">{artistsDisplay}</Header>
+          <Header as="h4" inverted color="grey">{artistsDisplayName}</Header>
           <Icon
             name={isPlaying ? 'pause circle outline' : 'play circle outline'}
             size="big"
@@ -87,3 +74,19 @@ export default class extends Component {
     );
   }
 }
+
+const mapStateToProps = state => ({
+  isLoading: isLoadingPlayerSelector(state),
+  trackInfo: currentTrackInfoSelector(state),
+});
+
+const mapDispatchToProps = dispatch => ({
+  actions: bindActionCreators({
+    ...SpotifyActionCreators,
+  }, dispatch),
+});
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(SongTrackCard);

@@ -1,14 +1,13 @@
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 class SpotifyService {
   player;
-  Spotify;
   accessToken;
   deviceId;
 
   constructor() {
     const authUrl = 'https://accounts.spotify.com/authorize';
     this.getAccessTokenFromRoute();
-
     if (!this.accessToken) {
       // TODO: refactor client_id and redirect_uri into seperate file
       const client_id = '7c64e4430f07419fb440e31ecb259838';
@@ -40,63 +39,35 @@ class SpotifyService {
     this.accessToken = hashParams.access_token;
   }
 
-  initPlayerAsync(name) {
-    return new Promise((resolve, reject) => {
-      this.playerCheckInterval = setInterval(
-        () => this.checkForPlayer(resolve, reject, name), 1000);
-    });
-  }
-
-  checkForPlayer(resolve, reject, name) {
-    // if the Spotify SDK has loaded
-    if (window.Spotify && window.Spotify.Player) {
-      // cancel the interval
-      clearInterval(this.playerCheckInterval);
-      // create a new player
-      this.player = new window.Spotify.Player({
-        name,
-        getOAuthToken: (cb) => { cb(this.accessToken); },
-      });
-      // set up the player's event handlers
-      this.initListeners(resolve, reject);
-      // finally, connect!
-      this.player.connect();
+  initPlayerAsync = async (name) => {
+    while (!(window.Spotify && window.Spotify.Player)) {
+      // eslint-disable-next-line
+      await delay(500);
     }
+    this.player = new window.Spotify.Player({
+      name,
+      getOAuthToken: (cb) => { cb(this.accessToken); },
+    });
+    this.player.connect();
+    await this.preparePlayer();
+    return this.accessToken;
   }
 
-  initListeners(resolve, reject) {
-    // problem setting up the player
-    this.player.on('initialization_error', (e) => {
-      reject(e);
-    });
-    // problem authenticating the user.
-    // either the token was invalid in the first place,
-    // or it expired (it lasts one hour)
-    this.player.on('authentication_error', (e) => {
-      reject(e);
-    });
-    // currently only premium accounts can use the API
-    this.player.on('account_error', (e) => {
-      reject(e);
-    });
-    // loading/playing the track failed for some reason
-    this.player.on('playback_error', (e) => {
-      reject(e);
-    });
-
-    // Ready
-    this.player.on('ready', async (data) => {
-      const { device_id } = data;
+  preparePlayer = () => new Promise((resolve) => {
+    // NOTE: Ready
+    this.player.on('ready', ({ device_id }) => {
       console.log('Spotify player is ready!');
       this.deviceId = device_id;
-      resolve(`accessToken: ${this.accessToken}, deviceId: ${this.deviceId}`);
+      resolve({ deviceId: this.deviceId, accessToken: this.accessToken });
     });
-  }
+  });
 
   play = async ({
     spotifyUri,
     positionMs,
   }) => {
+    console.log(spotifyUri);
+    // NOTE: play the track uri
     let result = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${this.deviceId}`, {
       method: 'PUT',
       body: JSON.stringify({
@@ -107,9 +78,12 @@ class SpotifyService {
         Authorization: `Bearer ${this.accessToken}`,
       },
     });
-    if (result.status !== 204 || result.status !== 202) {
+    if (result.status !== 200
+      || result.status !== 204
+      || result.status !== 202) {
       return result;
     }
+    // NOTE: seek to desired position.
     result = await fetch(`https://api.spotify.com/v1/me/player/seek?=position_ms=${positionMs}&device_id=${this.deviceId}`, {
       method: 'PUT',
       headers: {
@@ -120,23 +94,13 @@ class SpotifyService {
     return result;
   };
 
-  getCurrentState = () => {
-    this.player.getCurrentState().then((state) => {
-      if (!state) {
-        console.error('User is not playing music through the Web Playback SDK');
-        return null;
-      }
-      return state;
-    });
-  };
-
-  getCurrentTrackInfo = async () => {
+  getCurrentState = async () => {
     const result = await this.player.getCurrentState();
     if (!result) {
-      return console.error('User is not playing music through the Web Playback SDK');
+      console.error('User is not connected');
     }
-    return result.track_window.current_track;
-  }
+    return result;
+  };
 }
 
 export default new SpotifyService();
