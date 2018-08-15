@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import {
@@ -10,74 +11,59 @@ import {
   Header,
 } from 'semantic-ui-react';
 
-import { SpotifyActionCreators } from '../redux/modules/spotify';
-
-import SpotifyService from '../services/SpotifyService';
+import {
+  SpotifyActionCreators,
+  isLoadingPlayerSelector,
+  currentTrackInfoSelector,
+} from '../redux/modules/spotify';
 
 class SongTrackCard extends Component {
-  state = {
-    isPlaying: false,
-
-    // NOTE: should fetch spotifyUri from firebase
-    spotifyUri: 'spotify:track:6i87BCsPUiPLtBqTEK6Y4A',
-    positionMs: 0,
-    albumImg: '',
-    artistsDisplay: '',
-  };
+  static propTypes = {
+    actions: PropTypes.shape({
+      initPlayerRequest: PropTypes.func.isRequired,
+      togglePlayRequest: PropTypes.func.isRequired,
+    }).isRequired,
+    trackInfo: PropTypes.shape({
+      isPlaying: PropTypes.bool,
+      albumImg: PropTypes.string,
+      artistsDisplayName: PropTypes.string,
+      songName: PropTypes.string,
+    }).isRequired,
+    isLoading: PropTypes.bool.isRequired,
+  }
 
   componentDidMount() {
-    const { actions } = this.props;
-    actions.initPlayerRequest({ playerStateChangedCb: this.getCurrentTrackInfo });
+    const { actions: { initPlayerRequest } } = this.props;
+    initPlayerRequest();
   }
 
-  getCurrentTrackInfo = async () => {
-    const result = await SpotifyService.getCurrentState();
-    const {
-      track_window: {
-        current_track: {
-          name: songName,
-          album: {
-            images: albumImgs,
-          },
-          artists,
-        },
-      },
-      paused,
-    } = result;
-    const artistsDisplay = artists.map(({ name }) => name).join(', ');
-    this.setState({
-      songName,
-      albumImg: albumImgs[0].url,
-      artistsDisplay,
-      isPlaying: !paused,
-    });
-  }
-
-  togglePlay = async () => {
-    await SpotifyService.player.togglePlay();
-    const { isPlaying } = this.state;
-    this.setState({ isPlaying: !isPlaying });
+  togglePlay = () => {
+    const { actions: { togglePlayRequest } } = this.props;
+    togglePlayRequest();
   }
 
   render() {
-    const {
-      isPlaying,
-      albumImg,
-      artistsDisplay,
-      songName,
-    } = this.state;
-
     const { isLoading } = this.props;
 
     if (isLoading) {
       return <Loader active inline="centered" />;
     }
+
+    const {
+      trackInfo: {
+        isPlaying,
+        albumImg,
+        artistsDisplayName,
+        songName,
+      },
+    } = this.props;
+
     return (
       <Card centered>
         <Segment inverted textAlign="center">
           <Image src={albumImg} />
           <Header as="h3">{songName}</Header>
-          <Header as="h4" inverted color="grey">{artistsDisplay}</Header>
+          <Header as="h4" inverted color="grey">{artistsDisplayName}</Header>
           <Icon
             name={isPlaying ? 'pause circle outline' : 'play circle outline'}
             size="big"
@@ -90,7 +76,8 @@ class SongTrackCard extends Component {
 }
 
 const mapStateToProps = state => ({
-  isLoading: state.spotify.isLoading,
+  isLoading: isLoadingPlayerSelector(state),
+  trackInfo: currentTrackInfoSelector(state),
 });
 
 const mapDispatchToProps = dispatch => ({

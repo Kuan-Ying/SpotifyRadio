@@ -49,38 +49,18 @@ class SpotifyService {
       getOAuthToken: (cb) => { cb(this.accessToken); },
     });
     this.player.connect();
-    await this.initListeners();
+    await this.preparePlayer();
     return this.accessToken;
   }
 
-  initListeners = () => {
-    // problem setting up the player
-    this.player.on('initialization_error', (e) => {
-      console.log(e);
+  preparePlayer = () => new Promise((resolve) => {
+    // NOTE: Ready
+    this.player.on('ready', ({ device_id }) => {
+      console.log('Spotify player is ready!');
+      this.deviceId = device_id;
+      resolve({ deviceId: this.deviceId, accessToken: this.accessToken });
     });
-    // NOTE: problem authenticating the user.
-    // either the token was invalid in the first place,
-    // or it expired (it lasts one hour)
-    this.player.on('authentication_error', (e) => {
-      console.log(e);
-    });
-    // NOTE: currently only premium accounts can use the API
-    this.player.on('account_error', (e) => {
-      console.log(e);
-    });
-    // NOTE: loading/playing the track failed for some reason
-    this.player.on('playback_error', (e) => {
-      console.log(e);
-    });
-    return new Promise((resolve) => {
-      // NOTE: Ready
-      this.player.on('ready', ({ device_id }) => {
-        console.log('Spotify player is ready!');
-        this.deviceId = device_id;
-        resolve({ deviceId: this.deviceId, accessToken: this.accessToken });
-      });
-    });
-  }
+  });
 
   play = async ({
     spotifyUri,

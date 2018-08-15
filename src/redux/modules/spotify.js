@@ -1,13 +1,17 @@
+import _ from 'lodash';
 import {
   createActions,
   combineActions,
   handleActions,
 } from 'redux-actions';
+import { eventChannel } from 'redux-saga';
 import {
   call,
   put,
+  take,
   takeLatest,
 } from 'redux-saga/effects';
+import { createSelector } from 'reselect';
 
 import SpotifyService from '../../services/SpotifyService';
 import actionTypesCreator from '../../helpers/actionTypesCreator';
@@ -24,15 +28,41 @@ export const SpotifyActionCreators = createActions(
   ...Object.values(GET_CURRENT_PLAYER_STATE),
 );
 
+
 // NOTE: Sagas
 
-function* initPlayer({ payload: { playerStateChangedCb } }) {
+function* getCurrentPlayerState() {
+  try {
+    const result = yield call(SpotifyService.getCurrentState);
+    yield put(SpotifyActionCreators.getCurrentPlayerStateSuccess(result));
+  } catch (e) {
+    console.log(e);
+    yield put(SpotifyActionCreators.getCurrentPlayerStateFailure(e));
+  }
+}
+
+function getCurrentPlayerStateChannel() {
+  return eventChannel((emit) => {
+    SpotifyService.player.on('player_state_changed', emit);
+    return () => {};
+  });
+}
+
+function* watchPlayerStateChange() {
+  const changeChaneel = yield call(getCurrentPlayerStateChannel);
+  while (true) {
+    yield take(changeChaneel);
+    yield call(getCurrentPlayerState);
+  }
+}
+
+function* initPlayer() {
   try {
     const result = yield call(SpotifyService.initPlayerAsync, 'Kuan\'s player');
     const spotifyUri = 'spotify:track:6i87BCsPUiPLtBqTEK6Y4A';
     yield put(SpotifyActionCreators.playRequest({ spotifyUri, positionMs: 0 }));
-    SpotifyService.player.on('player_state_changed', playerStateChangedCb);
     yield put(SpotifyActionCreators.initPlayerSuccess(result));
+    yield call(watchPlayerStateChange);
   } catch (e) {
     console.log(e);
     yield put(SpotifyActionCreators.initPlayerFailure(e));
@@ -44,8 +74,8 @@ function* play({ payload: { spotifyUri, positionMs } }) {
     console.log(spotifyUri);
     const result = yield call(SpotifyService.play, { spotifyUri, positionMs });
     if (result.status !== 200
-      || result.status !== 204
-      || result.status !== 202) {
+      && result.status !== 204
+      && result.status !== 202) {
       yield put(SpotifyActionCreators.playFailure(result));
       return;
     }
@@ -56,17 +86,65 @@ function* play({ payload: { spotifyUri, positionMs } }) {
   }
 }
 
+
+function* togglePlay() {
+  try {
+    yield SpotifyService.player.togglePlay();
+    yield put(SpotifyActionCreators.togglePlaySuccess());
+  } catch (e) {
+    console.log(e);
+    yield put(SpotifyActionCreators.togglePlayFailure(e));
+  }
+}
+
 export const SpotifySagas = [
   takeLatest(INIT_PLAYER.REQUEST, initPlayer),
   takeLatest(PLAY.REQUEST, play),
+  takeLatest(TOGGLE_PLAY.REQUEST, togglePlay),
 ];
 
+// NOTE: selectors
+export const isLoadingPlayerSelector = state => state.spotify.isLoading;
+
+export const currentPlayerStateSelector = state => state.spotify.playerState;
+
+export const currentTrackInfoSelector = createSelector([
+  currentPlayerStateSelector,
+], (playerState) => {
+  if (_.isEmpty(playerState)) {
+    return {
+      songName: '',
+      albumImg: '',
+      artistsDisplayName: '',
+      paused: true,
+    };
+  }
+  const {
+    track_window: {
+      current_track: {
+        name: songName,
+        album: {
+          images: albumImgs,
+        },
+        artists,
+      },
+    },
+    paused,
+  } = playerState;
+  const artistsDisplayName = artists.map(({ name }) => name).join(', ');
+  return {
+    songName,
+    albumImg: albumImgs[0].url,
+    artistsDisplayName,
+    isPlaying: !paused,
+  };
+});
 
 // NOTE: reducer
 const initialState = {
   isLoading: false,
   error: null,
-  data: null,
+  playerState: {},
 };
 
 export default handleActions({
@@ -82,10 +160,12 @@ export default handleActions({
     isLoading: false,
     ...(error ? {
       error: payload,
-      data: null,
     } : {
       error: null,
-      data: payload,
     }),
+  }),
+  [GET_CURRENT_PLAYER_STATE.SUCCESS]: (state, { payload }) => ({
+    ...state,
+    playerState: payload,
   }),
 }, initialState);
