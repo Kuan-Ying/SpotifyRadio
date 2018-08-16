@@ -134,7 +134,7 @@ export const currentTrackInfoSelector = createSelector([
   const artistsDisplayName = artists.map(({ name }) => name).join(', ');
   return {
     songName,
-    albumImg: albumImgs[0].url,
+    albumImg: albumImgs[1].url,
     artistsDisplayName,
     isPlaying: !paused,
   };

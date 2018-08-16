@@ -4,20 +4,20 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import {
   Loader,
-  Image,
-  Icon,
   Segment,
   Card,
-  Header,
 } from 'semantic-ui-react';
 
 import {
   SpotifyActionCreators,
   isLoadingPlayerSelector,
   currentTrackInfoSelector,
-} from '../redux/modules/spotify';
+} from '../../redux/modules/spotify';
 
-class SongTrackCard extends Component {
+import TrackList from './TrackList';
+import TrackPlayControl from './TrackPlayControl';
+
+class SpotifyPlayer extends Component {
   static propTypes = {
     actions: PropTypes.shape({
       initPlayerRequest: PropTypes.func.isRequired,
@@ -30,6 +30,7 @@ class SongTrackCard extends Component {
       songName: PropTypes.string,
     }).isRequired,
     isLoading: PropTypes.bool.isRequired,
+    tracks: PropTypes.array.isRequired,
   }
 
   componentDidMount() {
@@ -43,41 +44,68 @@ class SongTrackCard extends Component {
   }
 
   render() {
-    const { isLoading } = this.props;
+    const {
+      isLoading,
+      trackInfo,
+      tracks,
+    } = this.props;
 
     if (isLoading) {
       return <Loader active inline="centered" />;
     }
 
-    const {
-      trackInfo: {
-        isPlaying,
-        albumImg,
-        artistsDisplayName,
-        songName,
-      },
-    } = this.props;
-
     return (
-      <Card centered>
-        <Segment inverted textAlign="center">
-          <Image src={albumImg} />
-          <Header as="h3">{songName}</Header>
-          <Header as="h4" inverted color="grey">{artistsDisplayName}</Header>
-          <Icon
-            name={isPlaying ? 'pause circle outline' : 'play circle outline'}
-            size="big"
-            onClick={this.togglePlay}
+      <Card>
+        <Segment.Group>
+          <TrackPlayControl
+            trackInfo={trackInfo}
+            togglePlay={this.togglePlay}
           />
-        </Segment>
+          <TrackList tracks={tracks} />
+        </Segment.Group>
       </Card>
     );
   }
 }
 
+// TODO: get current track queue logic and remove test data
+const trackTestData = [
+  {
+    duration: 267810,
+    name: 'I really like you',
+    isPlaying: true,
+  },
+  {
+    duration: 237810,
+    name: 'attention',
+    isPlaying: false,
+  },
+  {
+    duration: 237810,
+    name: 'attention',
+    isPlaying: false,
+  },
+  {
+    duration: 237810,
+    name: 'attention',
+    isPlaying: false,
+  },
+  {
+    duration: 237810,
+    name: 'attention',
+    isPlaying: false,
+  },
+  {
+    duration: 237810,
+    name: 'attention',
+    isPlaying: false,
+  },
+];
+
 const mapStateToProps = state => ({
   isLoading: isLoadingPlayerSelector(state),
   trackInfo: currentTrackInfoSelector(state),
+  tracks: trackTestData,
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -89,4 +117,4 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(SongTrackCard);
+)(SpotifyPlayer);
