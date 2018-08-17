@@ -2,7 +2,8 @@ import React, { Component } from 'react';
 import { Provider } from 'react-redux';
 import configureStore from './redux/configureStore';
 
-import SpotifyPlayer from './components/SpotifyPlayer';
+//import SpotifyPlayer from './components/SpotifyPlayer';
+import TrackPlayControl from './components/SpotifyPlayer/TrackPlayControl';
 
 export const store = configureStore();
 class App extends Component {
@@ -10,7 +11,7 @@ class App extends Component {
     return (
       <Provider store={store}>
         <div>
-          <SpotifyPlayer />
+          <TrackPlayControl />
         </div>
       </Provider>
     );
