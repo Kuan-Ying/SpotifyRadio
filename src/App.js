@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Provider } from 'react-redux';
 import configureStore from './redux/configureStore';
 
-import SongTrackCard from './components/SongTrackCard';
+import SpotifyPlayer from './components/SpotifyPlayer';
 
 export const store = configureStore();
 class App extends Component {
@@ -10,7 +10,7 @@ class App extends Component {
     return (
       <Provider store={store}>
         <div>
-          <SongTrackCard />;
+          <SpotifyPlayer />
         </div>
       </Provider>
     );

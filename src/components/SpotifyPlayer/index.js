@@ -2,22 +2,19 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import {
-  Loader,
-  Image,
-  Icon,
-  Segment,
-  Card,
-  Header,
-} from 'semantic-ui-react';
+import { Segment } from 'semantic-ui-react';
 
 import {
   SpotifyActionCreators,
   isLoadingPlayerSelector,
   currentTrackInfoSelector,
-} from '../redux/modules/spotify';
+  playListSelector,
+} from '../../redux/modules/spotify';
 
-class SongTrackCard extends Component {
+import TrackList from './TrackList';
+import TrackPlayControl from './TrackPlayControl';
+
+class SpotifyPlayer extends Component {
   static propTypes = {
     actions: PropTypes.shape({
       initPlayerRequest: PropTypes.func.isRequired,
@@ -30,6 +27,7 @@ class SongTrackCard extends Component {
       songName: PropTypes.string,
     }).isRequired,
     isLoading: PropTypes.bool.isRequired,
+    tracks: PropTypes.array.isRequired,
   }
 
   componentDidMount() {
@@ -42,35 +40,37 @@ class SongTrackCard extends Component {
     togglePlayRequest();
   }
 
+  previousTrack = () => {
+    const { actions: { previousTrackRequest } } = this.props;
+    previousTrackRequest();
+  }
+
+  nextTrack = () => {
+    const { actions: { nextTrackRequest } } = this.props;
+    nextTrackRequest();
+  }
+
   render() {
-    const { isLoading } = this.props;
-
-    if (isLoading) {
-      return <Loader active inline="centered" />;
-    }
-
     const {
-      trackInfo: {
-        isPlaying,
-        albumImg,
-        artistsDisplayName,
-        songName,
-      },
+      isLoading,
+      trackInfo,
+      tracks,
     } = this.props;
 
     return (
-      <Card centered>
-        <Segment inverted textAlign="center">
-          <Image src={albumImg} />
-          <Header as="h3">{songName}</Header>
-          <Header as="h4" inverted color="grey">{artistsDisplayName}</Header>
-          <Icon
-            name={isPlaying ? 'pause circle outline' : 'play circle outline'}
-            size="big"
-            onClick={this.togglePlay}
+      <Segment.Group compact style={{ width: 400 }}>
+        <Segment loading={isLoading} compact style={{ padding: 0 }}>
+          <TrackPlayControl
+            trackInfo={trackInfo}
+            togglePlay={this.togglePlay}
+            onPrevious={this.previousTrack}
+            onNext={this.nextTrack}
           />
         </Segment>
-      </Card>
+        <Segment loading={isLoading} inverted compact>
+          <TrackList tracks={tracks} />
+        </Segment>
+      </Segment.Group>
     );
   }
 }
@@ -78,6 +78,7 @@ class SongTrackCard extends Component {
 const mapStateToProps = state => ({
   isLoading: isLoadingPlayerSelector(state),
   trackInfo: currentTrackInfoSelector(state),
+  tracks: playListSelector(state),
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -89,4 +90,4 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(SongTrackCard);
+)(SpotifyPlayer);

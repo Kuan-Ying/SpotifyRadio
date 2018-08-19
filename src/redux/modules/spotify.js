@@ -20,12 +20,16 @@ const INIT_PLAYER = actionTypesCreator('INIT_PLAYER');
 const PLAY = actionTypesCreator('PLAY');
 const TOGGLE_PLAY = actionTypesCreator('TOGGLE_PLAY');
 const GET_CURRENT_PLAYER_STATE = actionTypesCreator('GET_CURRENT_PLAYER_STATE');
+const PREVIOUS_TRACK = actionTypesCreator('PREVIOUS_TRACK');
+const NEXT_TRACK = actionTypesCreator('NEXT_TRACK');
 
 export const SpotifyActionCreators = createActions(
   ...Object.values(INIT_PLAYER),
   ...Object.values(PLAY),
   ...Object.values(TOGGLE_PLAY),
   ...Object.values(GET_CURRENT_PLAYER_STATE),
+  ...Object.values(PREVIOUS_TRACK),
+  ...Object.values(NEXT_TRACK),
 );
 
 
@@ -43,16 +47,22 @@ function* getCurrentPlayerState() {
 
 function getCurrentPlayerStateChannel() {
   return eventChannel((emit) => {
-    SpotifyService.player.on('player_state_changed', emit);
+    // // NOTE: synchronize player state for every 1s.
+    setInterval(() => {
+      emit(GET_CURRENT_PLAYER_STATE.REQUEST);
+    }, 1000);
+    SpotifyService.player.on('player_state_changed', () => emit(GET_CURRENT_PLAYER_STATE.REQUEST));
     return () => {};
   });
 }
 
 function* watchPlayerStateChange() {
-  const changeChaneel = yield call(getCurrentPlayerStateChannel);
+  const changeChannel = yield call(getCurrentPlayerStateChannel);
   while (true) {
-    yield take(changeChaneel);
-    yield call(getCurrentPlayerState);
+    const action = yield take(changeChannel);
+    if (action === GET_CURRENT_PLAYER_STATE.REQUEST) {
+      yield call(getCurrentPlayerState);
+    }
   }
 }
 
@@ -89,7 +99,7 @@ function* play({ payload: { spotifyUri, positionMs } }) {
 
 function* togglePlay() {
   try {
-    yield SpotifyService.player.togglePlay();
+    yield call(SpotifyService.togglePlay);
     yield put(SpotifyActionCreators.togglePlaySuccess());
   } catch (e) {
     console.log(e);
@@ -97,10 +107,32 @@ function* togglePlay() {
   }
 }
 
+function* previousTrack() {
+  try {
+    yield call(SpotifyService.previousTrack);
+    yield put(SpotifyActionCreators.previousTrackSuccess());
+  } catch (e) {
+    console.log(e);
+    yield put(SpotifyActionCreators.previousTrackFailure(e));
+  }
+}
+
+function* nextTrack() {
+  try {
+    yield call(SpotifyService.nextTrack);
+    yield put(SpotifyActionCreators.nextTrackSuccess());
+  } catch (e) {
+    console.log(e);
+    yield put(SpotifyActionCreators.nextTrackFailure(e));
+  }
+}
+
 export const SpotifySagas = [
   takeLatest(INIT_PLAYER.REQUEST, initPlayer),
   takeLatest(PLAY.REQUEST, play),
   takeLatest(TOGGLE_PLAY.REQUEST, togglePlay),
+  takeLatest(PREVIOUS_TRACK.REQUEST, previousTrack),
+  takeLatest(NEXT_TRACK.REQUEST, nextTrack),
 ];
 
 // NOTE: selectors
@@ -130,6 +162,8 @@ export const currentTrackInfoSelector = createSelector([
       },
     },
     paused,
+    position: positionMs,
+    duration: durationMs,
   } = playerState;
   const artistsDisplayName = artists.map(({ name }) => name).join(', ');
   return {
@@ -137,8 +171,14 @@ export const currentTrackInfoSelector = createSelector([
     albumImg: albumImgs[0].url,
     artistsDisplayName,
     isPlaying: !paused,
+    positionMs: positionMs || 0,
+    durationMs: durationMs || 0,
   };
 });
+
+// TODO: currently playlist is not added in reducer, need to refactor this logic
+export const playListSelector = createSelector(currentTrackInfoSelector,
+  trackInfo => [trackInfo]);
 
 // NOTE: reducer
 const initialState = {
