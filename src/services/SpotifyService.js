@@ -39,6 +39,7 @@ class SpotifyService {
     this.accessToken = hashParams.access_token;
   }
 
+  // NOTE: Spotify player
   initPlayerAsync = async (name) => {
     while (!(window.Spotify && window.Spotify.Player)) {
       // eslint-disable-next-line
@@ -107,6 +108,23 @@ class SpotifyService {
   previousTrack = () => this.player.previousTrack();
 
   nextTrack = () => this.player.nextTrack();
+
+  // NOTE: search songs
+  searchTracks = async (query) => {
+    const response = await fetch(`https://api.spotify.com/v1/search?q=${query}&type=track`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.accessToken}`,
+      },
+    });
+    let data = await response.json();
+    if (response.status === 200) {
+      const { tracks: { items } } = data;
+      data = items;
+    }
+    return { status: response.status, data };
+  }
 }
 
 export default new SpotifyService();

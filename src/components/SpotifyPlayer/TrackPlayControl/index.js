@@ -1,12 +1,12 @@
 import React from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
-import moment from 'moment';
 import { Icon } from 'semantic-ui-react';
 
 import AlbumPlayIcon from './AlbumPlayIcon';
 import ProgressBar from './ProgressBar';
 import TrackInfo from './TrackInfo';
+import { getDurationDisplay } from '../../../helpers/time';
 
 const FlexRow = styled.div`
   display: flex;
@@ -30,9 +30,6 @@ const TimeDisplay = styled.div`
 const ControlButton = styled(Icon)`
   color: ${({ active }) => (active ? 'white' : '#9b9da0')};
 `;
-
-/* eslint-disable no-underscore-dangle */
-const getTimeDisplay = time => moment(moment.duration(time)._data).format('mm:ss');
 
 export default class TrackPlayControl extends React.Component {
   static propTypes = {
@@ -75,7 +72,7 @@ export default class TrackPlayControl extends React.Component {
     const percent = (positionMs) ? (positionMs * 100) / durationMs : 0;
 
     return (
-      <FlexRow color="#1b1c1d">
+      <FlexRow color="black">
         <AlbumPlayIcon
           albumImg={albumImg}
           isPlaying={isPlaying}
@@ -87,7 +84,7 @@ export default class TrackPlayControl extends React.Component {
         <FlewColumn>
           <TrackInfo style={{ alignSelf: 'start' }} songName={songName} artistsDisplayName={artistsDisplayName} />
           <FlexRow style={{ alignItems: 'center', alignSelf: 'flex-end' }}>
-            <TimeDisplay>{getTimeDisplay(positionMs)}</TimeDisplay>
+            <TimeDisplay>{getDurationDisplay(positionMs)}</TimeDisplay>
             <ControlButton
               name="step backward"
               onClick={onPrevious}
@@ -103,7 +100,7 @@ export default class TrackPlayControl extends React.Component {
               onMouseEnter={() => this.setState({ nextButtonActive: true })}
               onMouseLeave={() => this.setState({ nextButtonActive: false })}
             />
-            <TimeDisplay>{getTimeDisplay(durationMs)}</TimeDisplay>
+            <TimeDisplay>{getDurationDisplay(durationMs)}</TimeDisplay>
           </FlexRow>
         </FlewColumn>
       </FlexRow>

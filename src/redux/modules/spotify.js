@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import {
   createActions,
   combineActions,
@@ -11,17 +10,18 @@ import {
   take,
   takeLatest,
 } from 'redux-saga/effects';
-import { createSelector } from 'reselect';
 
 import SpotifyService from '../../services/SpotifyService';
 import actionTypesCreator from '../../helpers/actionTypesCreator';
 
+// TODO: add maintain queue actions
 const INIT_PLAYER = actionTypesCreator('INIT_PLAYER');
 const PLAY = actionTypesCreator('PLAY');
 const TOGGLE_PLAY = actionTypesCreator('TOGGLE_PLAY');
 const GET_CURRENT_PLAYER_STATE = actionTypesCreator('GET_CURRENT_PLAYER_STATE');
 const PREVIOUS_TRACK = actionTypesCreator('PREVIOUS_TRACK');
 const NEXT_TRACK = actionTypesCreator('NEXT_TRACK');
+const SEARCH_TRACKS = actionTypesCreator('SEARCH_TRACKS');
 
 export const SpotifyActionCreators = createActions(
   ...Object.values(INIT_PLAYER),
@@ -30,6 +30,7 @@ export const SpotifyActionCreators = createActions(
   ...Object.values(GET_CURRENT_PLAYER_STATE),
   ...Object.values(PREVIOUS_TRACK),
   ...Object.values(NEXT_TRACK),
+  ...Object.values(SEARCH_TRACKS),
 );
 
 
@@ -127,64 +128,47 @@ function* nextTrack() {
   }
 }
 
+function* searchTracks({ payload: query }) {
+  try {
+    const result = yield call(SpotifyService.searchTracks, query);
+    if (result.status !== 200
+      && result.status !== 204
+      && result.status !== 202) {
+      yield put(SpotifyActionCreators.searchTracksFailure(result.data.error));
+      return;
+    }
+    yield put(SpotifyActionCreators.searchTracksSuccess(result));
+  } catch (e) {
+    console.log(e);
+    yield put(SpotifyActionCreators.searchTracksFailure(e));
+  }
+}
+
 export const SpotifySagas = [
   takeLatest(INIT_PLAYER.REQUEST, initPlayer),
   takeLatest(PLAY.REQUEST, play),
   takeLatest(TOGGLE_PLAY.REQUEST, togglePlay),
   takeLatest(PREVIOUS_TRACK.REQUEST, previousTrack),
   takeLatest(NEXT_TRACK.REQUEST, nextTrack),
+  takeLatest(SEARCH_TRACKS.REQUEST, searchTracks),
 ];
 
-// NOTE: selectors
+// NOTE: shared selectors
 export const isLoadingPlayerSelector = state => state.spotify.isLoading;
 
 export const currentPlayerStateSelector = state => state.spotify.playerState;
 
-export const currentTrackInfoSelector = createSelector([
-  currentPlayerStateSelector,
-], (playerState) => {
-  if (_.isEmpty(playerState)) {
-    return {
-      songName: '',
-      albumImg: '',
-      artistsDisplayName: '',
-      paused: true,
-    };
-  }
-  const {
-    track_window: {
-      current_track: {
-        name: songName,
-        album: {
-          images: albumImgs,
-        },
-        artists,
-      },
-    },
-    paused,
-    position: positionMs,
-    duration: durationMs,
-  } = playerState;
-  const artistsDisplayName = artists.map(({ name }) => name).join(', ');
-  return {
-    songName,
-    albumImg: albumImgs[0].url,
-    artistsDisplayName,
-    isPlaying: !paused,
-    positionMs: positionMs || 0,
-    durationMs: durationMs || 0,
-  };
-});
+export const isSearchingSelector = state => state.spotify.isSearching;
 
-// TODO: currently playlist is not added in reducer, need to refactor this logic
-export const playListSelector = createSelector(currentTrackInfoSelector,
-  trackInfo => [trackInfo]);
+export const searchedTracksSelector = state => state.spotify.searchedTracks;
 
 // NOTE: reducer
 const initialState = {
   isLoading: false,
+  isSearching: false,
   error: null,
   playerState: {},
+  searchedTracks: [],
 };
 
 export default handleActions({
@@ -207,5 +191,22 @@ export default handleActions({
   [GET_CURRENT_PLAYER_STATE.SUCCESS]: (state, { payload }) => ({
     ...state,
     playerState: payload,
+  }),
+  [SEARCH_TRACKS.REQUEST]: state => ({
+    ...state,
+    isSearching: true,
+  }),
+  [combineActions(
+    SEARCH_TRACKS.SUCCESS,
+    SEARCH_TRACKS.FAILURE,
+  )]: (state, { payload, error }) => ({
+    ...state,
+    isSearching: false,
+    ...(error ? {
+      error: payload,
+    } : {
+      error: null,
+      searchedTracks: payload.data,
+    }),
   }),
 }, initialState);

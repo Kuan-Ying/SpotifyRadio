@@ -17,7 +17,7 @@ export default class extends React.Component {
   render() {
     const { tracks } = this.props;
     return (
-      <List divided inverted relaxed style={{ height: 100, overflowY: 'scroll' }}>
+      <List divided inverted relaxed style={{ height: 200, overflowY: 'auto' }}>
         {
           tracks.map(({ songName, durationMs, isPlaying }, index) => (
             <List.Item key={songName}>

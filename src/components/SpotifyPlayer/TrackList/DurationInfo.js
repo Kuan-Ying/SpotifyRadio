@@ -1,11 +1,8 @@
 import React from 'react';
 import PropType from 'prop-types';
-import moment from 'moment';
 
 import Text from './Text';
-
-/* eslint-disable no-underscore-dangle */
-const getTimeDisplay = time => moment(moment.duration(time)._data).format('mm:ss');
+import { getDurationDisplay } from '../../../helpers/time';
 
 export default function DurationInfo({ duration, isPlaying }) {
   return (
@@ -15,7 +12,7 @@ export default function DurationInfo({ duration, isPlaying }) {
       inactivecolor="grey"
       floated="right"
     >
-      {getTimeDisplay(duration)}
+      {getDurationDisplay(duration)}
     </Text>
   );
 }

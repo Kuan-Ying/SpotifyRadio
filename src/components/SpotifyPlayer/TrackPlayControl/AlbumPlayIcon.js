@@ -20,7 +20,7 @@ const AlbumPlayIcon = ({
     onMouseLeave={onMouseLeave}
   >
     <Image src={albumImg} size="small" />
-    <Dimmer active={active}>
+    <Dimmer active={active || !isPlaying}>
       <Icon
         name={isPlaying ? 'pause circle outline' : 'play circle outline'}
         size="huge"
