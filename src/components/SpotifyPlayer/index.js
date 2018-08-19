@@ -7,10 +7,11 @@ import { Segment } from 'semantic-ui-react';
 import {
   SpotifyActionCreators,
   isLoadingPlayerSelector,
+} from '../../redux/modules/spotify';
+import {
   currentTrackInfoSelector,
   playListSelector,
-} from '../../redux/modules/spotify';
-
+} from './selectors';
 import TrackList from './TrackList';
 import TrackPlayControl from './TrackPlayControl';
 
@@ -58,7 +59,7 @@ class SpotifyPlayer extends Component {
     } = this.props;
 
     return (
-      <Segment.Group compact style={{ width: 400 }}>
+      <Segment.Group compact style={{ margin: 0 }}>
         <Segment loading={isLoading} compact style={{ padding: 0 }}>
           <TrackPlayControl
             trackInfo={trackInfo}
@@ -67,7 +68,7 @@ class SpotifyPlayer extends Component {
             onNext={this.nextTrack}
           />
         </Segment>
-        <Segment loading={isLoading} inverted compact>
+        <Segment loading={isLoading} inverted compact style={{ background: 'black' }}>
           <TrackList tracks={tracks} />
         </Segment>
       </Segment.Group>
