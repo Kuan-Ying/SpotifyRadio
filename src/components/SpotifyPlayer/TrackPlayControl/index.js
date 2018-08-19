@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
+import moment from 'moment';
 import { Icon } from 'semantic-ui-react';
 
 import AlbumPlayIcon from './AlbumPlayIcon';
@@ -9,38 +10,38 @@ import TrackInfo from './TrackInfo';
 
 const FlexRow = styled.div`
   display: flex;
-  align-items: stretch;
   min-height: 5px;
   background: ${({ color }) => (color ? `${color}` : 'transparent')};
 `;
 
 const FlewColumn = styled.div`
+  display: flex;
   flex-direction: column;
+  justify-content: space-between;
   min-height: 5px;
   padding: 5px;
 `;
 
-const ControlButton = styled(Icon)`
-  color: ${({ active }) => (active ? 'white' : '#3f3f3f')};
+const TimeDisplay = styled.div`
+  color: #9b9da0;
+  font-size: 12px;
 `;
 
-// TODO: add next song, previous song, current play status
+const ControlButton = styled(Icon)`
+  color: ${({ active }) => (active ? 'white' : '#9b9da0')};
+`;
+
+/* eslint-disable no-underscore-dangle */
+const getTimeDisplay = time => moment(moment.duration(time)._data).format('mm:ss');
+
 export default class TrackPlayControl extends React.Component {
   static propTypes = {
     trackInfo: PropTypes.object.isRequired,
     togglePlay: PropTypes.func.isRequired,
     onNext: PropTypes.func.isRequired,
     onPrevious: PropTypes.func.isRequired,
-  };
-
-  static defaultProps = {
-    trackInfo: {
-      albumImg: 'https://i.scdn.co/image/7d9fada23c7044da31f8f687c84292885c180488',
-      songName: 'Lost Stars',
-      artistsDisplayName: 'Adam Levine',
-      isPlaying: true,
-    },
-    togglePlay: () => {},
+    positionMs: PropTypes.number.isRequired,
+    durationMs: PropTypes.number.isRequired,
   };
 
   state = {
@@ -54,6 +55,8 @@ export default class TrackPlayControl extends React.Component {
         songName,
         artistsDisplayName,
         isPlaying,
+        positionMs,
+        durationMs,
       },
       togglePlay,
       onPrevious,
@@ -64,6 +67,7 @@ export default class TrackPlayControl extends React.Component {
       prevButtonActive,
       nextButtonActive,
     } = this.state;
+    const percent = (positionMs) ? (positionMs * 100) / durationMs : 0;
 
     return (
       <FlexRow color="#1b1c1d">
@@ -76,23 +80,25 @@ export default class TrackPlayControl extends React.Component {
           onMouseLeave={() => this.setState({ playButtonActive: false })}
         />
         <FlewColumn>
-          <TrackInfo songName={songName} artistsDisplayName={artistsDisplayName} />
-          <FlexRow style={{ alignItems: 'center' }}>
+          <TrackInfo style={{ alignSelf: 'start' }} songName={songName} artistsDisplayName={artistsDisplayName} />
+          <FlexRow style={{ alignItems: 'center', alignSelf: 'flex-end' }}>
+            <TimeDisplay>{getTimeDisplay(positionMs)}</TimeDisplay>
             <ControlButton
               name="step backward"
               onClick={onPrevious}
-              active={prevButtonActive}
+              active={prevButtonActive ? 1 : 0}
               onMouseEnter={() => this.setState({ prevButtonActive: true })}
               onMouseLeave={() => this.setState({ prevButtonActive: false })}
             />
-            <ProgressBar percent={20} />
+            <ProgressBar style={{ paddingTop: 1 }} percent={percent} />
             <ControlButton
               name="step forward"
-              active={nextButtonActive}
+              active={nextButtonActive ? 1 : 0}
               onClick={onNext}
               onMouseEnter={() => this.setState({ nextButtonActive: true })}
               onMouseLeave={() => this.setState({ nextButtonActive: false })}
             />
+            <TimeDisplay>{getTimeDisplay(durationMs)}</TimeDisplay>
           </FlexRow>
         </FlewColumn>
       </FlexRow>

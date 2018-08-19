@@ -101,6 +101,12 @@ class SpotifyService {
     }
     return result;
   };
+
+  togglePlay = () => this.player.togglePlay();
+
+  previousTrack = () => this.player.previousTrack();
+
+  nextTrack = () => this.player.nextTrack();
 }
 
 export default new SpotifyService();

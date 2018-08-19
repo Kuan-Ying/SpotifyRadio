@@ -2,11 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import {
-  Loader,
-  Segment,
-  Card,
-} from 'semantic-ui-react';
+import { Segment } from 'semantic-ui-react';
 
 import {
   SpotifyActionCreators,
@@ -43,6 +39,16 @@ class SpotifyPlayer extends Component {
     togglePlayRequest();
   }
 
+  previousTrack = () => {
+    const { actions: { previousTrackRequest } } = this.props;
+    previousTrackRequest();
+  }
+
+  nextTrack = () => {
+    const { actions: { nextTrackRequest } } = this.props;
+    nextTrackRequest();
+  }
+
   render() {
     const {
       isLoading,
@@ -50,55 +56,30 @@ class SpotifyPlayer extends Component {
       tracks,
     } = this.props;
 
-    if (isLoading) {
-      return <Loader active inline="centered" />;
-    }
-
     return (
-      <Card>
-        <Segment.Group>
+      <Segment.Group compact style={{ width: 400 }}>
+        <Segment loading={isLoading} compact style={{ padding: 0 }}>
           <TrackPlayControl
             trackInfo={trackInfo}
             togglePlay={this.togglePlay}
+            onPrevious={this.previousTrack}
+            onNext={this.nextTrack}
           />
+        </Segment>
+        <Segment loading={isLoading} inverted compact>
           <TrackList tracks={tracks} />
-        </Segment.Group>
-      </Card>
+        </Segment>
+      </Segment.Group>
     );
   }
 }
 
-// TODO: get current track queue logic and remove test data
+// TODO: get current track queue logic and remove
 const trackTestData = [
   {
     duration: 267810,
     name: 'I really like you',
     isPlaying: true,
-  },
-  {
-    duration: 237810,
-    name: 'attention',
-    isPlaying: false,
-  },
-  {
-    duration: 237810,
-    name: 'attention',
-    isPlaying: false,
-  },
-  {
-    duration: 237810,
-    name: 'attention',
-    isPlaying: false,
-  },
-  {
-    duration: 237810,
-    name: 'attention',
-    isPlaying: false,
-  },
-  {
-    duration: 237810,
-    name: 'attention',
-    isPlaying: false,
   },
 ];
 

@@ -16,15 +16,14 @@ const AlbumPlayIcon = ({
 }) => (
   <Dimmer.Dimmable
     dimmed={active}
-    inverted
     onMouseEnter={onMouseEnter}
     onMouseLeave={onMouseLeave}
   >
-    <Image src={albumImg} size="tiny" />
+    <Image src={albumImg} size="small" />
     <Dimmer active={active}>
       <Icon
         name={isPlaying ? 'pause circle outline' : 'play circle outline'}
-        size="big"
+        size="huge"
         onClick={togglePlay}
       />
     </Dimmer>
@@ -38,6 +37,6 @@ AlbumPlayIcon.propTypes = {
   isPlaying: PropTypes.bool.isRequired,
   togglePlay: PropTypes.func.isRequired,
   albumImg: PropTypes.string.isRequired,
-  onMouseEnter: PropTypes.bool.isRequired,
-  onMouseLeave: PropTypes.bool.isRequired,
+  onMouseEnter: PropTypes.func.isRequired,
+  onMouseLeave: PropTypes.func.isRequired,
 };
