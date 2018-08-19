@@ -176,6 +176,10 @@ export const currentTrackInfoSelector = createSelector([
   };
 });
 
+// TODO: currently playlist is not added in reducer, need to refactor this logic
+export const playListSelector = createSelector(currentTrackInfoSelector,
+  trackInfo => [trackInfo]);
+
 // NOTE: reducer
 const initialState = {
   isLoading: false,

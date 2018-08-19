@@ -25,5 +25,9 @@ export default function PlayStatus({ index, isPlaying }) {
 
 PlayStatus.propTypes = {
   index: PropType.number.isRequired,
-  isPlaying: PropType.bool.isRequired,
+  isPlaying: PropType.bool,
+};
+
+PlayStatus.defaultProps = {
+  isPlaying: false,
 };

@@ -41,7 +41,12 @@ export default class TrackPlayControl extends React.Component {
     onNext: PropTypes.func.isRequired,
     onPrevious: PropTypes.func.isRequired,
     positionMs: PropTypes.number.isRequired,
-    durationMs: PropTypes.number.isRequired,
+    durationMs: PropTypes.number,
+  };
+
+  static defaultProps = {
+    positionMs: 0,
+    durationMs: 0,
   };
 
   state = {

@@ -8,6 +8,7 @@ import {
   SpotifyActionCreators,
   isLoadingPlayerSelector,
   currentTrackInfoSelector,
+  playListSelector,
 } from '../../redux/modules/spotify';
 
 import TrackList from './TrackList';
@@ -74,19 +75,10 @@ class SpotifyPlayer extends Component {
   }
 }
 
-// TODO: get current track queue logic and remove
-const trackTestData = [
-  {
-    duration: 267810,
-    name: 'I really like you',
-    isPlaying: true,
-  },
-];
-
 const mapStateToProps = state => ({
   isLoading: isLoadingPlayerSelector(state),
   trackInfo: currentTrackInfoSelector(state),
-  tracks: trackTestData,
+  tracks: playListSelector(state),
 });
 
 const mapDispatchToProps = dispatch => ({

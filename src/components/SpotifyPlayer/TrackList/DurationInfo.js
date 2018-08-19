@@ -1,16 +1,13 @@
 import React from 'react';
 import PropType from 'prop-types';
+import moment from 'moment';
 
 import Text from './Text';
 
-const getMinsAndSecs = (duration) => {
-  const mins = Math.floor(duration / 1000 / 60);
-  const secs = Math.ceil((duration / 1000) - (mins * 60));
-  return { mins, secs };
-};
+/* eslint-disable no-underscore-dangle */
+const getTimeDisplay = time => moment(moment.duration(time)._data).format('mm:ss');
 
 export default function DurationInfo({ duration, isPlaying }) {
-  const { mins, secs } = getMinsAndSecs(duration);
   return (
     <Text
       isPlaying={isPlaying}
@@ -18,12 +15,17 @@ export default function DurationInfo({ duration, isPlaying }) {
       inactivecolor="grey"
       floated="right"
     >
-      {mins}:{secs}
+      {getTimeDisplay(duration)}
     </Text>
   );
 }
 
 DurationInfo.propTypes = {
-  duration: PropType.number.isRequired,
-  isPlaying: PropType.bool.isRequired,
+  duration: PropType.number,
+  isPlaying: PropType.bool,
+};
+
+DurationInfo.defaultProps = {
+  duration: 0,
+  isPlaying: false,
 };

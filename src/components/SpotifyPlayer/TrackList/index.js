@@ -19,16 +19,16 @@ export default class extends React.Component {
     return (
       <List divided inverted relaxed style={{ height: 100, overflowY: 'scroll' }}>
         {
-          tracks.map(({ name, duration, isPlaying }, index) => (
-            <List.Item key={name}>
-              <DurationInfo isPlaying={isPlaying} duration={duration} />
+          tracks.map(({ songName, durationMs, isPlaying }, index) => (
+            <List.Item key={songName}>
+              <DurationInfo isPlaying={isPlaying} duration={durationMs} />
               <PlayStatus isPlaying={isPlaying} index={index} />
               <Text
                 isPlaying={isPlaying}
                 activecolor="#42f46e"
                 inactivecolor="grey"
               >
-                {name}
+                {songName}
               </Text>
             </List.Item>))
         }

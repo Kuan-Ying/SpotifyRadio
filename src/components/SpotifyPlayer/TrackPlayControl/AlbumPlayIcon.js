@@ -33,10 +33,15 @@ const AlbumPlayIcon = ({
 export default AlbumPlayIcon;
 
 AlbumPlayIcon.propTypes = {
-  active: PropTypes.bool.isRequired,
-  isPlaying: PropTypes.bool.isRequired,
+  active: PropTypes.bool,
+  isPlaying: PropTypes.bool,
   togglePlay: PropTypes.func.isRequired,
   albumImg: PropTypes.string.isRequired,
   onMouseEnter: PropTypes.func.isRequired,
   onMouseLeave: PropTypes.func.isRequired,
+};
+
+AlbumPlayIcon.defaultProps = {
+  active: false,
+  isPlaying: false,
 };
