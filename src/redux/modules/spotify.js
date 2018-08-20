@@ -114,7 +114,7 @@ function* seek({ payload: percent }) {
   try {
     const { duration_ms: durationMs } = yield select(currentTrackSelector);
     const positionMs = durationMs * percent;
-    yield put(SpotifyService.seek(positionMs));
+    yield call(SpotifyService.seek, positionMs);
     yield put(SpotifyActionCreators.seekSuccess());
   } catch (e) {
     yield put(SpotifyActionCreators.seekFailure(e));
