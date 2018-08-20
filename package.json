@@ -10,8 +10,7 @@
     "eslint-plugin-jsx-a11y": "^5.0.3",
     "eslint-plugin-react": "^7.0.1",
     "import-sort-style-renke": "^3.0.0",
-    "pushstate-server": "^3.0.1",
-    "react-scripts": "^1.0.12"
+    "pushstate-server": "^3.0.1"
   },
   "dependencies": {
     "lodash": "^4.17.10",
@@ -37,7 +36,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "lint": "eslint src"
   },
   "importSort": {
     ".js, .jsx, .es6, .es": {
