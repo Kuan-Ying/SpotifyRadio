@@ -1,3 +1,4 @@
+# Introduction
 SpotifyRadio aims to provide a live streaming platform using [Spotify Web Playback SDK](https://developer.spotify.com/documentation/web-playback-sdk/reference/) and [Spotify Web API](https://developer.spotify.com/documentation/web-api/reference/).
 
 # Progress
@@ -15,3 +16,6 @@ https://hackmd.io/5j_EmejGQ9e6-mHWZoT2gg
 git clone https://github.com/Kuan-Ying/SpotifyRadio.git
 yarn install
 ```
+# TODOs:
+- Maintain play queue with firebase, sync React app with the firebase.
+- Chat room with firebase
