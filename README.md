@@ -3,9 +3,6 @@ SpotifyRadio aims to provide a live streaming platform using [Spotify Web Playba
 # User story
 https://hackmd.io/5j_EmejGQ9e6-mHWZoT2gg
 
-# Wireframe
-https://www.lucidchart.com/invitations/accept/415f141f-7c2e-4495-b968-df92d2fd766b
-
 # Install
 
 ```
