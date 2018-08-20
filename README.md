@@ -14,7 +14,7 @@ https://hackmd.io/5j_EmejGQ9e6-mHWZoT2gg
 
 ```
 git clone https://github.com/Kuan-Ying/SpotifyRadio.git
-yarn install
+yarn
 ```
 # TODOs:
 - Maintain play queue with firebase, sync React app with the firebase.
