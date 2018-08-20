@@ -8,10 +8,17 @@ import ProgressBar from './ProgressBar';
 import TrackInfo from './TrackInfo';
 import { getDurationDisplay } from '../../../helpers/time';
 
+const StyledTrackInfo = styled(TrackInfo).attrs({
+  songName: ({ songName }) => songName,
+  artistsDisplayName: ({ artistsDisplayName }) => artistsDisplayName,
+})`
+  align-self: start;
+`;
+
 const FlexRow = styled.div`
   display: flex;
   min-height: 5px;
-  background: ${({ color }) => (color ? `${color}` : 'transparent')};
+  background: ${({ color }) => (color || 'transparent')};
 `;
 
 const FlewColumn = styled.div`
@@ -29,6 +36,17 @@ const TimeDisplay = styled.div`
 
 const ControlButton = styled(Icon)`
   color: ${({ active }) => (active ? 'white' : '#9b9da0')};
+`;
+
+const ControlBarContainer = styled(FlexRow)`
+  align-items: center;
+  align-self: flex-end;
+`;
+
+const StyledProgressBar = styled(ProgressBar).attrs({
+  percent: ({ percent }) => percent,
+})`
+  padding-top: 1px;
 `;
 
 export default class TrackPlayControl extends React.Component {
@@ -82,8 +100,11 @@ export default class TrackPlayControl extends React.Component {
           onMouseLeave={() => this.setState({ playButtonActive: false })}
         />
         <FlewColumn>
-          <TrackInfo style={{ alignSelf: 'start' }} songName={songName} artistsDisplayName={artistsDisplayName} />
-          <FlexRow style={{ alignItems: 'center', alignSelf: 'flex-end' }}>
+          <StyledTrackInfo
+            songName={songName}
+            artistsDisplayName={artistsDisplayName}
+          />
+          <ControlBarContainer>
             <TimeDisplay>{getDurationDisplay(positionMs)}</TimeDisplay>
             <ControlButton
               name="step backward"
@@ -92,7 +113,7 @@ export default class TrackPlayControl extends React.Component {
               onMouseEnter={() => this.setState({ prevButtonActive: true })}
               onMouseLeave={() => this.setState({ prevButtonActive: false })}
             />
-            <ProgressBar style={{ paddingTop: 1 }} percent={percent} />
+            <StyledProgressBar percent={percent} />
             <ControlButton
               name="step forward"
               active={nextButtonActive ? 1 : 0}
@@ -101,7 +122,7 @@ export default class TrackPlayControl extends React.Component {
               onMouseLeave={() => this.setState({ nextButtonActive: false })}
             />
             <TimeDisplay>{getDurationDisplay(durationMs)}</TimeDisplay>
-          </FlexRow>
+          </ControlBarContainer>
         </FlewColumn>
       </FlexRow>
     );

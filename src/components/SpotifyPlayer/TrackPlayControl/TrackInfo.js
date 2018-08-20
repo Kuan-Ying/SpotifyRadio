@@ -1,14 +1,22 @@
 import React from 'react';
+import styled from 'styled-components';
 import PropType from 'prop-types';
 import { Header } from 'semantic-ui-react';
 
+const StyledHeader = styled(Header).attrs({
+  inverted: true,
+  as: 'h4',
+})`
+  padding-top: 10px;
+`;
+
 const TrackInfo = ({ songName, artistsDisplayName }) => (
-  <Header inverted as="h4" style={{ paddingTop: 10 }}>
+  <StyledHeader>
     {songName}
     <Header.Subheader inverted color="grey">
       {artistsDisplayName}
     </Header.Subheader>
-  </Header>
+  </StyledHeader>
 );
 
 export default TrackInfo;

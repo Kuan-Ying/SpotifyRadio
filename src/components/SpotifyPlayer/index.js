@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
@@ -15,11 +16,33 @@ import {
 import TrackList from './TrackList';
 import TrackPlayControl from './TrackPlayControl';
 
+const PlayControlSegment = styled(Segment).attrs({
+  loading: ({ isLoading }) => isLoading,
+  compact: true,
+})`
+  padding: 0 !important;
+`;
+
+const TrackListSegment = styled(Segment).attrs({
+  loading: ({ isLoading }) => isLoading,
+  compact: true,
+})`
+  background: black !important;
+`;
+
+const SegmentWraper = styled(Segment.Group).attrs({
+  compact: true,
+})`
+  margin: 0 !important;
+`;
+
 class SpotifyPlayer extends Component {
   static propTypes = {
     actions: PropTypes.shape({
       initPlayerRequest: PropTypes.func.isRequired,
       togglePlayRequest: PropTypes.func.isRequired,
+      previousTrackRequest: PropTypes.func.isRequired,
+      nextTrackRequest: PropTypes.func.isRequired,
     }).isRequired,
     trackInfo: PropTypes.shape({
       isPlaying: PropTypes.bool,
@@ -59,19 +82,19 @@ class SpotifyPlayer extends Component {
     } = this.props;
 
     return (
-      <Segment.Group compact style={{ margin: 0 }}>
-        <Segment loading={isLoading} compact style={{ padding: 0 }}>
+      <SegmentWraper>
+        <PlayControlSegment isLoading={isLoading}>
           <TrackPlayControl
             trackInfo={trackInfo}
             togglePlay={this.togglePlay}
             onPrevious={this.previousTrack}
             onNext={this.nextTrack}
           />
-        </Segment>
-        <Segment loading={isLoading} inverted compact style={{ background: 'black' }}>
-          <TrackList tracks={tracks} />
-        </Segment>
-      </Segment.Group>
+        </PlayControlSegment>
+        <TrackListSegment>
+          <TrackList tracks={tracks} isLoading={isLoading} />
+        </TrackListSegment>
+      </SegmentWraper>
     );
   }
 }

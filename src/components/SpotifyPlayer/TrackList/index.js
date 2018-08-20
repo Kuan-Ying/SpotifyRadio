@@ -1,9 +1,19 @@
 import React from 'react';
+import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import { List } from 'semantic-ui-react';
 import DurationInfo from './DurationInfo';
 import PlayStatus from './PlayStatus';
 import Text from './Text';
+
+const StyledList = styled(List).attrs({
+  divided: true,
+  inverted: true,
+  relaxed: true,
+})`
+  height: 200px;
+  overflow-y: auto;
+`;
 
 export default class extends React.Component {
   static propTypes = {
@@ -17,7 +27,7 @@ export default class extends React.Component {
   render() {
     const { tracks } = this.props;
     return (
-      <List divided inverted relaxed style={{ height: 200, overflowY: 'auto' }}>
+      <StyledList>
         {
           tracks.map(({ songName, durationMs, isPlaying }, index) => (
             <List.Item key={songName}>
@@ -32,7 +42,7 @@ export default class extends React.Component {
               </Text>
             </List.Item>))
         }
-      </List>
+      </StyledList>
     );
   }
 }
