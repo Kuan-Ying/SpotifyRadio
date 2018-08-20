@@ -43,6 +43,7 @@ class SpotifyPlayer extends Component {
       togglePlayRequest: PropTypes.func.isRequired,
       previousTrackRequest: PropTypes.func.isRequired,
       nextTrackRequest: PropTypes.func.isRequired,
+      playRequest: PropTypes.func.isRequired,
     }).isRequired,
     trackInfo: PropTypes.shape({
       isPlaying: PropTypes.bool,
@@ -74,6 +75,11 @@ class SpotifyPlayer extends Component {
     nextTrackRequest();
   }
 
+  changePlaybackPosition = (percent) => {
+    const { actions: { seekRequest } } = this.props;
+    seekRequest(percent);
+  }
+
   render() {
     const {
       isLoading,
@@ -87,6 +93,7 @@ class SpotifyPlayer extends Component {
           <TrackPlayControl
             trackInfo={trackInfo}
             togglePlay={this.togglePlay}
+            changePlaybackPosition={this.changePlaybackPosition}
             onPrevious={this.previousTrack}
             onNext={this.nextTrack}
           />

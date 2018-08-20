@@ -11,6 +11,7 @@ import { getDurationDisplay } from '../../../helpers/time';
 const StyledTrackInfo = styled(TrackInfo).attrs({
   songName: ({ songName }) => songName,
   artistsDisplayName: ({ artistsDisplayName }) => artistsDisplayName,
+  onClick: ({ onClick }) => onClick,
 })`
   align-self: start;
 `;
@@ -36,6 +37,9 @@ const TimeDisplay = styled.div`
 
 const ControlButton = styled(Icon)`
   color: ${({ active }) => (active ? 'white' : '#9b9da0')};
+  display: table !important;
+  text-align: center !important;
+  margin-top: 2px !important;
 `;
 
 const ControlBarContainer = styled(FlexRow)`
@@ -57,6 +61,7 @@ export default class TrackPlayControl extends React.Component {
     onPrevious: PropTypes.func.isRequired,
     positionMs: PropTypes.number.isRequired,
     durationMs: PropTypes.number,
+    changePlaybackPosition: PropTypes.func.isRequired,
   };
 
   static defaultProps = {
@@ -81,6 +86,7 @@ export default class TrackPlayControl extends React.Component {
       togglePlay,
       onPrevious,
       onNext,
+      changePlaybackPosition,
     } = this.props;
     const {
       playButtonActive,
@@ -113,7 +119,10 @@ export default class TrackPlayControl extends React.Component {
               onMouseEnter={() => this.setState({ prevButtonActive: true })}
               onMouseLeave={() => this.setState({ prevButtonActive: false })}
             />
-            <StyledProgressBar percent={percent} />
+            <StyledProgressBar
+              onClick={changePlaybackPosition}
+              percent={percent}
+            />
             <ControlButton
               name="step forward"
               active={nextButtonActive ? 1 : 0}

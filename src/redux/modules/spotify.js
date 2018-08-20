@@ -9,14 +9,27 @@ import {
   put,
   take,
   takeLatest,
+  select,
 } from 'redux-saga/effects';
 
 import SpotifyService from '../../services/SpotifyService';
 import actionTypesCreator from '../../helpers/actionTypesCreator';
 
+// NOTE: shared selectors
+export const isLoadingPlayerSelector = state => state.spotify.isLoading;
+
+export const currentPlayerStateSelector = state => state.spotify.playerState;
+
+export const currentTrackSelector = state => state.spotify.playerState.track_window.current_track;
+
+export const isSearchingSelector = state => state.spotify.isSearching;
+
+export const searchedTracksSelector = state => state.spotify.searchedTracks;
+
 // TODO: add maintain queue actions
 const INIT_PLAYER = actionTypesCreator('INIT_PLAYER');
 const PLAY = actionTypesCreator('PLAY');
+const SEEK = actionTypesCreator('SEEK');
 const TOGGLE_PLAY = actionTypesCreator('TOGGLE_PLAY');
 const GET_CURRENT_PLAYER_STATE = actionTypesCreator('GET_CURRENT_PLAYER_STATE');
 const PREVIOUS_TRACK = actionTypesCreator('PREVIOUS_TRACK');
@@ -26,6 +39,7 @@ const SEARCH_TRACKS = actionTypesCreator('SEARCH_TRACKS');
 export const SpotifyActionCreators = createActions(
   ...Object.values(INIT_PLAYER),
   ...Object.values(PLAY),
+  ...Object.values(SEEK),
   ...Object.values(TOGGLE_PLAY),
   ...Object.values(GET_CURRENT_PLAYER_STATE),
   ...Object.values(PREVIOUS_TRACK),
@@ -48,7 +62,7 @@ function* getCurrentPlayerState() {
 
 function getCurrentPlayerStateChannel() {
   return eventChannel((emit) => {
-    // // NOTE: synchronize player state for every 1s.
+    // NOTE: synchronize player state for every 1s.
     setInterval(() => {
       emit(GET_CURRENT_PLAYER_STATE.REQUEST);
     }, 1000);
@@ -82,7 +96,6 @@ function* initPlayer() {
 
 function* play({ payload: { spotifyUri, positionMs } }) {
   try {
-    console.log(spotifyUri);
     const result = yield call(SpotifyService.play, { spotifyUri, positionMs });
     if (result.status !== 200
       && result.status !== 204
@@ -94,6 +107,17 @@ function* play({ payload: { spotifyUri, positionMs } }) {
   } catch (e) {
     console.log(e);
     yield put(SpotifyActionCreators.playFailure(e));
+  }
+}
+
+function* seek({ payload: percent }) {
+  try {
+    const { duration_ms: durationMs } = yield select(currentTrackSelector);
+    const positionMs = durationMs * percent;
+    yield put(SpotifyService.seek(positionMs));
+    yield put(SpotifyActionCreators.seekSuccess());
+  } catch (e) {
+    yield put(SpotifyActionCreators.seekFailure(e));
   }
 }
 
@@ -147,20 +171,12 @@ function* searchTracks({ payload: query }) {
 export const SpotifySagas = [
   takeLatest(INIT_PLAYER.REQUEST, initPlayer),
   takeLatest(PLAY.REQUEST, play),
+  takeLatest(SEEK.REQUEST, seek),
   takeLatest(TOGGLE_PLAY.REQUEST, togglePlay),
   takeLatest(PREVIOUS_TRACK.REQUEST, previousTrack),
   takeLatest(NEXT_TRACK.REQUEST, nextTrack),
   takeLatest(SEARCH_TRACKS.REQUEST, searchTracks),
 ];
-
-// NOTE: shared selectors
-export const isLoadingPlayerSelector = state => state.spotify.isLoading;
-
-export const currentPlayerStateSelector = state => state.spotify.playerState;
-
-export const isSearchingSelector = state => state.spotify.isSearching;
-
-export const searchedTracksSelector = state => state.spotify.searchedTracks;
 
 // NOTE: reducer
 const initialState = {

@@ -63,13 +63,15 @@ class SpotifyService {
     });
   });
 
+  // NOTE: play the song and seek to positionMs
+  // Should only used for synchroize player.
+  // Otherwise, users will sense playbar go back to the start then jump to the desired postion.
   play = async ({
     spotifyUri,
     positionMs,
   }) => {
-    console.log(spotifyUri);
     // NOTE: play the track uri
-    let result = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${this.deviceId}`, {
+    let response = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${this.deviceId}`, {
       method: 'PUT',
       body: JSON.stringify({
         uris: [spotifyUri],
@@ -79,20 +81,35 @@ class SpotifyService {
         Authorization: `Bearer ${this.accessToken}`,
       },
     });
-    if (result.status !== 200
-      || result.status !== 204
-      || result.status !== 202) {
-      return result;
+
+    if (!positionMs
+      || (response.status !== 200
+      && response.status !== 204
+      && response.status !== 202)) {
+      return { status: response.status };
     }
+
     // NOTE: seek to desired position.
-    result = await fetch(`https://api.spotify.com/v1/me/player/seek?=position_ms=${positionMs}&device_id=${this.deviceId}`, {
+    response = await fetch(`https://api.spotify.com/v1/me/player/seek?=position_ms=${Math.floor(positionMs)}&device_id=${this.deviceId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${this.accessToken}`,
       },
     });
-    return result;
+    return response;
+  };
+
+  // NOTE: seek to the position desired position.
+  seek = async (positionMs) => {
+    const response = await fetch(`https://api.spotify.com/v1/me/player/seek?=position_ms=${Math.floor(positionMs)}&device_id=${this.deviceId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.accessToken}`,
+      },
+    });
+    return response;
   };
 
   getCurrentState = async () => {
