@@ -25,7 +25,7 @@ const Circle = styled.div`
   height: 10px;
   width: 10px;
   top: -2px;
-  left: calc(100% - 2px);
+  left: calc(100% - 5px);
   border-radius: 10px;
 `;
 
