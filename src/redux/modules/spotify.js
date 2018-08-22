@@ -244,14 +244,20 @@ function* addTrackToPlayQueue({ payload: trackData }) {
   try {
     yield call(PlayerAPI.addTrackToPlayQueue, trackData);
     yield put(SpotifyActionCreators.addTrackToPlayQueueSuccess());
+    yield put(SpotifyActionCreators.fetchPlayQueueRequest());
   } catch (e) {
     yield put(SpotifyActionCreators.addTrackToPlayQueueFailure(e));
   }
 }
 
-// TODO: removeTrackFromQueue logic and corresponsing setup in view
-function* removeTrackFromPlayQueue() {
-
+function* removeTrackFromPlayQueue({ payload: trackId }) {
+  try {
+    yield call(PlayerAPI.removeTrackFromPlayQueue, trackId);
+    yield put(SpotifyActionCreators.removeTrackFromPlayQueueSuccess());
+    yield put(SpotifyActionCreators.fetchPlayQueueRequest());
+  } catch (e) {
+    yield put(SpotifyActionCreators.removeTrackFromPlayQueueFailure(e));
+  }
 }
 
 export const SpotifySagas = [

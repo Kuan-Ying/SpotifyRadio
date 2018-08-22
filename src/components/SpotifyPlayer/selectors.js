@@ -1,7 +1,10 @@
 import _ from 'lodash';
 import { createSelector } from 'reselect';
 
-import { currentPlayerStateSelector } from '../../redux/modules/spotify';
+import {
+  currentPlayerStateSelector,
+  currentPlayQueueSelector,
+} from '../../redux/modules/spotify';
 
 export const currentTrackInfoSelector = createSelector([
   currentPlayerStateSelector,
@@ -18,6 +21,7 @@ export const currentTrackInfoSelector = createSelector([
     track_window: {
       current_track: {
         name: songName,
+        uri: spotifyUri,
         album: {
           images: albumImgs,
         },
@@ -31,6 +35,7 @@ export const currentTrackInfoSelector = createSelector([
   const artistsDisplayName = artists.map(({ name }) => name).join(', ');
   return {
     songName,
+    spotifyUri,
     albumImg: albumImgs[0].url,
     artistsDisplayName,
     isPlaying: !paused,
@@ -39,4 +44,9 @@ export const currentTrackInfoSelector = createSelector([
   };
 });
 
-export const mock = {};
+export const playQueueSelector = createSelector([
+  currentTrackInfoSelector,
+  currentPlayQueueSelector,
+], ({ spotifyUri, isPlaying }, queue) => _.map(queue,
+  track => ({ ...track, isPlaying: spotifyUri === track.spotifyUri && isPlaying })
+));
