@@ -8,11 +8,9 @@ import { Segment } from 'semantic-ui-react';
 import {
   SpotifyActionCreators,
   isLoadingPlayerSelector,
+  currentPlayQueueSelector,
 } from '../../redux/modules/spotify';
-import {
-  currentTrackInfoSelector,
-  playListSelector,
-} from './selectors';
+import { currentTrackInfoSelector } from './selectors';
 import TrackList from './TrackList';
 import TrackPlayControl from './TrackPlayControl';
 
@@ -109,7 +107,7 @@ class SpotifyPlayer extends Component {
 const mapStateToProps = state => ({
   isLoading: isLoadingPlayerSelector(state),
   trackInfo: currentTrackInfoSelector(state),
-  tracks: playListSelector(state),
+  tracks: currentPlayQueueSelector(state),
 });
 
 const mapDispatchToProps = dispatch => ({

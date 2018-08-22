@@ -1,3 +1,5 @@
+import config from '../config';
+
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 class SpotifyService {
@@ -10,8 +12,7 @@ class SpotifyService {
     this.getAccessTokenFromRoute();
     if (!this.accessToken) {
       // TODO: refactor client_id and redirect_uri into seperate file
-      const client_id = '7c64e4430f07419fb440e31ecb259838';
-      const redirect_uri = 'http://localhost:3000/callback';
+      const { client_id, redirect_uri } = config.spotify;
       const scopes = ['user-read-private', 'user-read-email', 'user-modify-playback-state'];
       const params = {
         response_type: 'token',
@@ -66,15 +67,13 @@ class SpotifyService {
   // NOTE: play the song and seek to positionMs
   // Should only used for synchroize player.
   // Otherwise, users will sense playbar go back to the start then jump to the desired postion.
-  play = async ({
-    spotifyUri,
-    positionMs,
-  }) => {
+  play = async ({ spotifyUri, positionMs }) => {
     // NOTE: play the track uri
-    let response = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${this.deviceId}`, {
+    const response = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${this.deviceId}`, {
       method: 'PUT',
       body: JSON.stringify({
         uris: [spotifyUri],
+        position_ms: positionMs,
       }),
       headers: {
         'Content-Type': 'application/json',
@@ -82,27 +81,17 @@ class SpotifyService {
       },
     });
 
-    if (!positionMs
-      || (response.status !== 200
+    if (response.status !== 200
       && response.status !== 204
-      && response.status !== 202)) {
+      && response.status !== 202) {
       return { status: response.status };
     }
-
-    // NOTE: seek to desired position.
-    response = await fetch(`https://api.spotify.com/v1/me/player/seek?=position_ms=${Math.floor(positionMs)}&device_id=${this.deviceId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.accessToken}`,
-      },
-    });
     return response;
   };
 
   // NOTE: seek to the position desired position.
   seek = async (positionMs) => {
-    const response = await fetch(`https://api.spotify.com/v1/me/player/seek?=position_ms=${Math.floor(positionMs)}&device_id=${this.deviceId}`, {
+    const response = await fetch(`https://api.spotify.com/v1/me/player/seek?position_ms=${Math.floor(positionMs)}&device_id=${this.deviceId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -112,19 +101,10 @@ class SpotifyService {
     return response;
   };
 
-  getCurrentState = async () => {
-    const result = await this.player.getCurrentState();
-    if (!result) {
-      console.error('User is not connected');
-    }
-    return result;
-  };
+  getCurrentState = () => this.player.getCurrentState();
+
 
   togglePlay = () => this.player.togglePlay();
-
-  previousTrack = () => this.player.previousTrack();
-
-  nextTrack = () => this.player.nextTrack();
 
   // NOTE: search songs
   searchTracks = async (query) => {
