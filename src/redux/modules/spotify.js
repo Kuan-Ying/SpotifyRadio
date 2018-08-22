@@ -58,6 +58,7 @@ export const SpotifyActionCreators = createActions(
   ...Object.values(REMOVE_TRACK_FROM_PLAY_QUEUE),
 );
 
+// NOTE: Sagas
 function* synchronizeFromFirebase() {
   yield put(SpotifyActionCreators.fetchPlayQueueRequest());
   const currentTrack = yield call(PlayerAPI.fetchCurrentTrack);
@@ -67,7 +68,6 @@ function* synchronizeFromFirebase() {
   }
 }
 
-// NOTE: Sagas
 function* getCurrentPlayerState() {
   try {
     const queue = yield select(currentPlayQueueSelector);
@@ -250,6 +250,7 @@ function* addTrackToPlayQueue({ payload: trackData }) {
   }
 }
 
+// TODO: removeTrackFromQueue logic and corresponsing setup in view
 function* removeTrackFromPlayQueue() {
 
 }
