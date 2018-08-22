@@ -18,7 +18,6 @@ import PlayerAPI from '../../API/PlayerAPI';
 import actionTypesCreator from '../../helpers/actionTypesCreator';
 
 // NOTE: shared selectors
-export const isPlayingPlayerSelector = state => state.spotify.isPlaying;
 export const isLoadingPlayerSelector = state => state.spotify.isLoading;
 
 export const currentPlayerStateSelector = state => state.spotify.playerState;
@@ -31,7 +30,7 @@ export const searchedTracksSelector = state => state.spotify.searchedTracks;
 
 export const currentPlayQueueSelector = state => state.spotify.playQueue;
 
-// TODO: add maintain queue actions
+// NOTE: Actions
 const INIT_PLAYER = actionTypesCreator('INIT_PLAYER');
 const PLAY = actionTypesCreator('PLAY');
 const SEEK = actionTypesCreator('SEEK');
@@ -90,7 +89,7 @@ function* getCurrentPlayerState() {
         positionMs,
         index: _.findIndex(queue, ({ spotifyUri: target }) => target === spotifyUri),
       });
-      if (yield select(isPlayingPlayerSelector) && positionMs >= durationMs - 600) {
+      if (!result.paused && positionMs >= durationMs - 600) {
         yield put(SpotifyActionCreators.nextTrackRequest());
       }
     }
@@ -271,7 +270,6 @@ export const SpotifySagas = [
 // NOTE: reducer
 const initialState = {
   isLoading: false,
-  isPlaying: false,
   isSearching: false,
   error: null,
   playerState: {},
@@ -290,7 +288,6 @@ export default handleActions({
   )]: (state, { payload, error }) => ({
     ...state,
     isLoading: false,
-    isPlaying: true,
     ...(error ? {
       error: payload,
     } : {
