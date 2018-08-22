@@ -5,12 +5,14 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { Segment } from 'semantic-ui-react';
 
-import {
+import spotify, {
   SpotifyActionCreators,
   isLoadingPlayerSelector,
-  currentPlayQueueSelector,
 } from '../../redux/modules/spotify';
-import { currentTrackInfoSelector } from './selectors';
+import {
+  currentTrackInfoSelector,
+  playQueueSelector,
+} from './selectors';
 import TrackList from './TrackList';
 import TrackPlayControl from './TrackPlayControl';
 
@@ -41,6 +43,8 @@ class SpotifyPlayer extends Component {
       togglePlayRequest: PropTypes.func.isRequired,
       previousTrackRequest: PropTypes.func.isRequired,
       nextTrackRequest: PropTypes.func.isRequired,
+      seekRequest: PropTypes.func.isRequired,
+      removeTrackFromPlayQueueRequest: PropTypes.func.isRequired,
       playRequest: PropTypes.func.isRequired,
     }).isRequired,
     trackInfo: PropTypes.shape({
@@ -78,6 +82,16 @@ class SpotifyPlayer extends Component {
     seekRequest(percent);
   }
 
+  removeFromQueue = (id) => {
+    const { actions: { removeTrackFromPlayQueueRequest } } = this.props;
+    removeTrackFromPlayQueueRequest(id);
+  }
+
+  play = (spotifyUri) => {
+    const { actions: { playRequest } } = this.props;
+    playRequest({ spotifyUri, positionMs: 0 });
+  }
+
   render() {
     const {
       isLoading,
@@ -97,7 +111,12 @@ class SpotifyPlayer extends Component {
           />
         </PlayControlSegment>
         <TrackListSegment>
-          <TrackList tracks={tracks} isLoading={isLoading} />
+          <TrackList
+            tracks={tracks}
+            isLoading={isLoading}
+            onPlay={this.play}
+            onRemove={this.removeFromQueue}
+          />
         </TrackListSegment>
       </SegmentWraper>
     );
@@ -107,7 +126,7 @@ class SpotifyPlayer extends Component {
 const mapStateToProps = state => ({
   isLoading: isLoadingPlayerSelector(state),
   trackInfo: currentTrackInfoSelector(state),
-  tracks: currentPlayQueueSelector(state),
+  tracks: playQueueSelector(state),
 });
 
 const mapDispatchToProps = dispatch => ({

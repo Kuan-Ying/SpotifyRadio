@@ -18,7 +18,7 @@ class FirebaseService {
 
   readArray = async (path) => {
     const value = await this.read(path);
-    return value ? _.values(value) : null;
+    return value ? _.keys(value).map(id => ({ id, ...value[id] })) : null;
   };
 
   write = async (path, value) => {
@@ -26,6 +26,8 @@ class FirebaseService {
   };
 
   push = async (path, value) => this.database.ref(path).push(value);
+
+  removeChild = async (path, value) => this.database.ref(path).child(value).remove();
 }
 
 export default new FirebaseService();
