@@ -4,7 +4,7 @@ import styled from 'styled-components';
 
 const Progress = styled.div`
   position: relative;
-  width: ${({ percent }) => percent}%;
+  width: ${({ percent }) => Math.min(percent, 100)}%;
   height: 5px;
   background: ${({ active }) => (active ? '#42f46e' : '#9b9da0')};
   border-radius: 4px;
