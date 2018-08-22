@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
 import {
   Table,
   Icon,
@@ -7,11 +9,14 @@ import {
   Loader,
 } from 'semantic-ui-react';
 
+import {
+  SpotifyActionCreators,
+} from '../../redux/modules/spotify';
 import { getDurationDisplay } from '../../helpers/time';
 import OptionDropdown from './OptionDropdown';
 
 // TODO: connect to redux store and call spotify actions
-export default class SongTable extends Component {
+class SongTable extends Component {
   static propTypes = {
     tracks: PropTypes.array.isRequired,
     isLoading: PropTypes.bool,
@@ -28,9 +33,10 @@ export default class SongTable extends Component {
     showOptionsAt: -1,
   };
 
-  addToQueue = (spotifyUri) => {
-    // TODO: use actions.addToQueueRequest();
-    console.log(spotifyUri);
+  addToQueue = async (data) => {
+    const { actions: { addTrackToPlayQueueRequest, fetchPlayQueueRequest } } = this.props;
+    addTrackToPlayQueueRequest(data);
+    fetchPlayQueueRequest();
     const { onCallback } = this.props;
     onCallback();
   }
@@ -50,7 +56,7 @@ export default class SongTable extends Component {
         <Table.Cell>
           <OptionDropdown
             visible={showOptionsAt === index}
-            onClick={() => this.addToQueue(spotifyUri)}
+            onClick={() => this.addToQueue({ spotifyUri, songName, durationMs })}
           />
         </Table.Cell>
       </Table.Row>
@@ -84,3 +90,14 @@ export default class SongTable extends Component {
     );
   }
 }
+
+const mapDispatchToProps = dispatch => ({
+  actions: bindActionCreators({
+    ...SpotifyActionCreators,
+  }, dispatch),
+});
+
+export default connect(
+  null,
+  mapDispatchToProps,
+)(SongTable);
