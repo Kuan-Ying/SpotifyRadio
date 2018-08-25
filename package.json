@@ -35,9 +35,9 @@
     "styled-components": "^3.4.2"
   },
   "scripts": {
-    "start": "PORT=3000 react-scripts start",
-    "start-dev": "REACT_APP_CONFIG_ENV=dev PORT=3000 react-scripts start",
-    "start-prod": "REACT_APP_CONFIG_ENV=prod PORT=3000 react-scripts start",
+    "start": "PORT=3000 HTTPS=true react-scripts start",
+    "start-dev": "REACT_APP_CONFIG_ENV=dev HTTPS=true PORT=3000 react-scripts start",
+    "start-prod": "REACT_APP_CONFIG_ENV=prod HTTPS=true PORT=3000 react-scripts start",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
     "lint": "eslint src"

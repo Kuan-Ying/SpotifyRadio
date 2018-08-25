@@ -22,7 +22,7 @@ export const isLoadingPlayerSelector = state => state.spotify.isLoading;
 
 export const currentPlayerStateSelector = state => state.spotify.playerState;
 
-export const currentTrackSelector = state => state.spotify.playerState.track_window.current_track;
+export const currentTrackSelector = state => state.spotify.currentTrack;
 
 export const isSearchingSelector = state => state.spotify.isSearching;
 
@@ -31,148 +31,81 @@ export const searchedTracksSelector = state => state.spotify.searchedTracks;
 export const currentPlayQueueSelector = state => state.spotify.playQueue;
 
 // NOTE: Actions
+const FETCH_CURRENT_TRACK = actionTypesCreator('FETCH_CURRENT_TRACK');
+const FETCH_PLAY_QUEUE = actionTypesCreator('FETCH_PLAY_QUEUE');
+const ADD_TRACK_TO_PLAY_QUEUE = actionTypesCreator('ADD_TRACK_TO_PLAY_QUEUE');
+const REMOVE_TRACK_FROM_PLAY_QUEUE = actionTypesCreator('REMOVE_TRACK_FROM_PLAY_QUEUE');
+const PREVIOUS_TRACK = actionTypesCreator('PREVIOUS_TRACK');
+const NEXT_TRACK = actionTypesCreator('NEXT_TRACK');
+const SEARCH_TRACKS = actionTypesCreator('SEARCH_TRACKS');
+
 const INIT_PLAYER = actionTypesCreator('INIT_PLAYER');
 const PLAY = actionTypesCreator('PLAY');
 const SEEK = actionTypesCreator('SEEK');
 const TOGGLE_PLAY = actionTypesCreator('TOGGLE_PLAY');
 const GET_CURRENT_PLAYER_STATE = actionTypesCreator('GET_CURRENT_PLAYER_STATE');
-const PREVIOUS_TRACK = actionTypesCreator('PREVIOUS_TRACK');
-const NEXT_TRACK = actionTypesCreator('NEXT_TRACK');
-const SEARCH_TRACKS = actionTypesCreator('SEARCH_TRACKS');
-const FETCH_PLAY_QUEUE = actionTypesCreator('FETCH_PLAY_QUEUE');
-const ADD_TRACK_TO_PLAY_QUEUE = actionTypesCreator('ADD_TRACK_TO_PLAY_QUEUE');
-const REMOVE_TRACK_FROM_PLAY_QUEUE = actionTypesCreator('REMOVE_TRACK_FROM_PLAY_QUEUE');
+
 
 export const SpotifyActionCreators = createActions(
+  ...Object.values(FETCH_PLAY_QUEUE),
+  ...Object.values(ADD_TRACK_TO_PLAY_QUEUE),
+  ...Object.values(REMOVE_TRACK_FROM_PLAY_QUEUE),
+  ...Object.values(PREVIOUS_TRACK),
+  ...Object.values(NEXT_TRACK),
+  ...Object.values(SEARCH_TRACKS),
+
   ...Object.values(INIT_PLAYER),
   ...Object.values(PLAY),
   ...Object.values(SEEK),
   ...Object.values(TOGGLE_PLAY),
   ...Object.values(GET_CURRENT_PLAYER_STATE),
-  ...Object.values(PREVIOUS_TRACK),
-  ...Object.values(NEXT_TRACK),
-  ...Object.values(SEARCH_TRACKS),
-  ...Object.values(FETCH_PLAY_QUEUE),
-  ...Object.values(ADD_TRACK_TO_PLAY_QUEUE),
-  ...Object.values(REMOVE_TRACK_FROM_PLAY_QUEUE),
 );
 
 // NOTE: Sagas
-function* synchronizeFromFirebase() {
-  yield put(SpotifyActionCreators.fetchPlayQueueRequest());
-  const currentTrack = yield call(PlayerAPI.fetchCurrentTrack);
-  if (!_.isEmpty(currentTrack)) {
-    const { spotifyUri, positionMs } = currentTrack;
-    yield call(SpotifyService.play, { spotifyUri, positionMs });
-  }
-}
-
-function* getCurrentPlayerState() {
-  try {
-    const queue = yield select(currentPlayQueueSelector);
-    const result = yield call(SpotifyService.getCurrentState);
-    if (!_.isEmpty(result) && !_.isEmpty(queue)) {
-      const {
-        track_window: {
-          current_track: {
-            uri: spotifyUri,
-            name: songName,
-          },
-        },
-        duration: durationMs,
-        position: positionMs,
-      } = result;
-      yield call(PlayerAPI.updateCurrentTrack, {
-        spotifyUri,
-        durationMs,
-        songName,
-        positionMs,
-        index: _.findIndex(queue, ({ spotifyUri: target }) => target === spotifyUri),
-      });
-      if (!result.paused && positionMs >= durationMs - 600) {
-        yield put(SpotifyActionCreators.nextTrackRequest());
-      }
-    }
-    yield put(SpotifyActionCreators.getCurrentPlayerStateSuccess(result));
-  } catch (e) {
-    console.log(e);
-    yield put(SpotifyActionCreators.getCurrentPlayerStateFailure(e));
-  }
-}
-
-function getCurrentPlayerStateChannel() {
-  return eventChannel((emit) => {
-    // NOTE: synchronize player state for every 1s.
-    setInterval(() => {
-      emit(GET_CURRENT_PLAYER_STATE.REQUEST);
-    }, 600);
-    SpotifyService.player.on('player_state_changed', () => emit(GET_CURRENT_PLAYER_STATE.REQUEST));
-    return () => {};
-  });
-}
-
-function* watchPlayerStateChange() {
-  const changeChannel = yield call(getCurrentPlayerStateChannel);
-  while (true) {
-    const action = yield take(changeChannel);
-    if (action === GET_CURRENT_PLAYER_STATE.REQUEST) {
-      yield call(getCurrentPlayerState);
-    }
-  }
-}
-
-function* play({ payload: { spotifyUri, positionMs } }) {
-  try {
-    const result = yield call(SpotifyService.play, { spotifyUri, positionMs });
-    if (result.status !== 200
-      && result.status !== 204
-      && result.status !== 202) {
-      yield put(SpotifyActionCreators.playFailure(result));
+function* fetchCurrentTrack() {
+  const remoteCurrentTrack = yield call(PlayerAPI.fetchCurrentTrack);
+  const localCurrentTrack = yield select(currentTrackSelector);
+  const { position: localPosition } = yield select(currentPlayerStateSelector);
+  if (!_.isEmpty(remoteCurrentTrack)) {
+    const { spotifyUri, positionMs: remotePosition } = remoteCurrentTrack;
+    if (!_.isEmpty(localCurrentTrack)
+      && localCurrentTrack.uri === spotifyUri
+      && Math.abs(localPosition - remotePosition) < 1000) {
       return;
     }
-    yield put(SpotifyActionCreators.playSuccess(result));
-  } catch (e) {
-    console.log(e);
-    yield put(SpotifyActionCreators.playFailure(e));
+    yield call(SpotifyService.play, { spotifyUri, positionMs: remotePosition });
   }
 }
 
-function* seek({ payload: percent }) {
+function* fetchPlayQueue() {
   try {
-    const { duration_ms: durationMs } = yield select(currentTrackSelector);
-    const positionMs = durationMs * percent;
-    yield call(SpotifyService.seek, positionMs);
-    yield put(SpotifyActionCreators.seekSuccess());
-  } catch (e) {
-    console.log(e);
-    yield put(SpotifyActionCreators.seekFailure(e));
-  }
-}
-
-function* initPlayer() {
-  try {
-    const result = yield call(SpotifyService.initPlayerAsync, 'Kuan\'s player');
-    yield call(synchronizeFromFirebase);
-    yield put(SpotifyActionCreators.initPlayerSuccess(result));
-    yield call(watchPlayerStateChange);
-  } catch (e) {
-    console.log(e);
-    yield put(SpotifyActionCreators.initPlayerFailure(e));
-  }
-}
-
-function* togglePlay() {
-  try {
-    if (_.isEmpty(yield select(currentPlayerStateSelector))) {
-      const { spotifyUri } = _.head(yield select(currentPlayQueueSelector));
-      yield call(play, { payload: { spotifyUri } });
-    } else {
-      yield call(SpotifyService.togglePlay);
+    const result = yield call(PlayerAPI.fetchPlayQueue);
+    if (!result) {
+      yield put(SpotifyActionCreators.fetchPlayQueueFailure('cannot find play queue'));
     }
-    yield put(SpotifyActionCreators.togglePlaySuccess());
+    yield put(SpotifyActionCreators.fetchPlayQueueSuccess(result));
   } catch (e) {
-    console.log(e);
-    yield put(SpotifyActionCreators.togglePlayFailure(e));
+    yield put(SpotifyActionCreators.fetchPlayQueueFailure(e));
+  }
+}
+
+function* addTrackToPlayQueue({ payload: trackData }) {
+  try {
+    yield call(PlayerAPI.addTrackToPlayQueue, trackData);
+    yield put(SpotifyActionCreators.addTrackToPlayQueueSuccess());
+    yield put(SpotifyActionCreators.fetchPlayQueueRequest());
+  } catch (e) {
+    yield put(SpotifyActionCreators.addTrackToPlayQueueFailure(e));
+  }
+}
+
+function* removeTrackFromPlayQueue({ payload: trackId }) {
+  try {
+    yield call(PlayerAPI.removeTrackFromPlayQueue, trackId);
+    yield put(SpotifyActionCreators.removeTrackFromPlayQueueSuccess());
+    yield put(SpotifyActionCreators.fetchPlayQueueRequest());
+  } catch (e) {
+    yield put(SpotifyActionCreators.removeTrackFromPlayQueueFailure(e));
   }
 }
 
@@ -228,49 +161,136 @@ function* searchTracks({ payload: query }) {
   }
 }
 
-function* fetchPlayQueue() {
+function* getCurrentPlayerState() {
   try {
-    const result = yield call(PlayerAPI.fetchPlayQueue);
-    if (!result) {
-      yield put(SpotifyActionCreators.fetchPlayQueueFailure('cannot find play queue'));
+    const queue = yield select(currentPlayQueueSelector);
+    const result = yield call(SpotifyService.getCurrentState);
+    if (!_.isEmpty(result) && !_.isEmpty(queue)) {
+      const {
+        track_window: {
+          current_track: {
+            uri: spotifyUri,
+            name: songName,
+          },
+        },
+        duration: durationMs,
+        position: positionMs,
+      } = result;
+      yield call(PlayerAPI.updateCurrentTrack, {
+        spotifyUri,
+        durationMs,
+        songName,
+        positionMs,
+        index: _.findIndex(queue, ({ spotifyUri: target }) => target === spotifyUri),
+      });
+      if (!result.paused && positionMs >= durationMs - 600) {
+        yield put(SpotifyActionCreators.nextTrackRequest());
+      }
     }
-    yield put(SpotifyActionCreators.fetchPlayQueueSuccess(result));
+    yield put(SpotifyActionCreators.getCurrentPlayerStateSuccess(result));
   } catch (e) {
-    yield put(SpotifyActionCreators.fetchPlayQueueFailure(e));
+    console.log(e);
+    yield put(SpotifyActionCreators.getCurrentPlayerStateFailure(e));
   }
 }
 
-function* addTrackToPlayQueue({ payload: trackData }) {
-  try {
-    yield call(PlayerAPI.addTrackToPlayQueue, trackData);
-    yield put(SpotifyActionCreators.addTrackToPlayQueueSuccess());
-    yield put(SpotifyActionCreators.fetchPlayQueueRequest());
-  } catch (e) {
-    yield put(SpotifyActionCreators.addTrackToPlayQueueFailure(e));
+function getCurrentPlayerStateChannel() {
+  return eventChannel((emit) => {
+    // NOTE: synchronize player state for every 1s.
+    setInterval(() => {
+      emit(GET_CURRENT_PLAYER_STATE.REQUEST);
+    }, 600);
+    SpotifyService.player.on('player_state_changed', () => emit(GET_CURRENT_PLAYER_STATE.REQUEST));
+    PlayerAPI.addPlayQueueListener(() => emit(FETCH_PLAY_QUEUE.REQUEST));
+    PlayerAPI.addCurrentTrackListener(() => emit(FETCH_CURRENT_TRACK.REQUEST));
+    return () => {};
+  });
+}
+
+function* watchPlayerStateChange() {
+  const changeChannel = yield call(getCurrentPlayerStateChannel);
+  while (true) {
+    const action = yield take(changeChannel);
+    if (action === GET_CURRENT_PLAYER_STATE.REQUEST) {
+      yield call(getCurrentPlayerState);
+    }
+    if (action === FETCH_PLAY_QUEUE.REQUEST) {
+      yield call(fetchPlayQueue);
+    }
+    if (action === FETCH_CURRENT_TRACK.REQUEST) {
+      yield call(fetchCurrentTrack);
+    }
   }
 }
 
-function* removeTrackFromPlayQueue({ payload: trackId }) {
+function* play({ payload: { spotifyUri, positionMs } }) {
   try {
-    yield call(PlayerAPI.removeTrackFromPlayQueue, trackId);
-    yield put(SpotifyActionCreators.removeTrackFromPlayQueueSuccess());
-    yield put(SpotifyActionCreators.fetchPlayQueueRequest());
+    const result = yield call(SpotifyService.play, { spotifyUri, positionMs });
+    if (result.status !== 200
+      && result.status !== 204
+      && result.status !== 202) {
+      yield put(SpotifyActionCreators.playFailure(result));
+      return;
+    }
+    yield put(SpotifyActionCreators.playSuccess(result));
   } catch (e) {
-    yield put(SpotifyActionCreators.removeTrackFromPlayQueueFailure(e));
+    console.log(e);
+    yield put(SpotifyActionCreators.playFailure(e));
+  }
+}
+
+function* seek({ payload: percent }) {
+  try {
+    const { duration_ms: durationMs } = yield select(currentTrackSelector);
+    const positionMs = durationMs * percent;
+    yield call(SpotifyService.seek, positionMs);
+    yield put(SpotifyActionCreators.seekSuccess());
+  } catch (e) {
+    console.log(e);
+    yield put(SpotifyActionCreators.seekFailure(e));
+  }
+}
+
+function* initPlayer() {
+  try {
+    const result = yield call(SpotifyService.initPlayerAsync, 'Kuan\'s player');
+    yield call(fetchCurrentTrack);
+    yield put(SpotifyActionCreators.initPlayerSuccess(result));
+    yield call(watchPlayerStateChange);
+  } catch (e) {
+    console.log(e);
+    yield put(SpotifyActionCreators.initPlayerFailure(e));
+  }
+}
+
+function* togglePlay() {
+  try {
+    if (_.isEmpty(yield select(currentPlayerStateSelector))) {
+      const { spotifyUri } = _.head(yield select(currentPlayQueueSelector));
+      yield call(play, { payload: { spotifyUri } });
+    } else {
+      yield call(SpotifyService.togglePlay);
+    }
+    yield put(SpotifyActionCreators.togglePlaySuccess());
+  } catch (e) {
+    console.log(e);
+    yield put(SpotifyActionCreators.togglePlayFailure(e));
   }
 }
 
 export const SpotifySagas = [
+  takeLatest(FETCH_PLAY_QUEUE.REQUEST, fetchPlayQueue),
+  takeLatest(ADD_TRACK_TO_PLAY_QUEUE.REQUEST, addTrackToPlayQueue),
+  takeLatest(REMOVE_TRACK_FROM_PLAY_QUEUE.REQUEST, removeTrackFromPlayQueue),
+
+  takeLatest(PREVIOUS_TRACK.REQUEST, previousTrack),
+  takeLatest(NEXT_TRACK.REQUEST, nextTrack),
+  takeLatest(SEARCH_TRACKS.REQUEST, searchTracks),
+
   takeLatest(INIT_PLAYER.REQUEST, initPlayer),
   takeLatest(PLAY.REQUEST, play),
   takeLatest(SEEK.REQUEST, seek),
   takeLatest(TOGGLE_PLAY.REQUEST, togglePlay),
-  takeLatest(PREVIOUS_TRACK.REQUEST, previousTrack),
-  takeLatest(NEXT_TRACK.REQUEST, nextTrack),
-  takeLatest(SEARCH_TRACKS.REQUEST, searchTracks),
-  takeLatest(FETCH_PLAY_QUEUE.REQUEST, fetchPlayQueue),
-  takeLatest(ADD_TRACK_TO_PLAY_QUEUE.REQUEST, addTrackToPlayQueue),
-  takeLatest(REMOVE_TRACK_FROM_PLAY_QUEUE.REQUEST, removeTrackFromPlayQueue),
 ];
 
 // NOTE: reducer
@@ -302,7 +322,8 @@ export default handleActions({
   }),
   [GET_CURRENT_PLAYER_STATE.SUCCESS]: (state, { payload }) => ({
     ...state,
-    playerState: payload,
+    playerState: payload || {},
+    currentTrack: payload && payload.track_window ? payload.track_window.current_track : {},
   }),
   [SEARCH_TRACKS.REQUEST]: state => ({
     ...state,
