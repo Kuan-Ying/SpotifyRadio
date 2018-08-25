@@ -16,7 +16,6 @@ import {
 import SpotifyService from '../../services/SpotifyService';
 import PlayerAPI from '../../API/PlayerAPI';
 import actionTypesCreator from '../../helpers/actionTypesCreator';
-import FirebaseService from '../../services/FirebaseService';
 
 // NOTE: shared selectors
 export const isLoadingPlayerSelector = state => state.spotify.isLoading;
@@ -202,8 +201,8 @@ function getCurrentPlayerStateChannel() {
       emit(GET_CURRENT_PLAYER_STATE.REQUEST);
     }, 600);
     SpotifyService.player.on('player_state_changed', () => emit(GET_CURRENT_PLAYER_STATE.REQUEST));
-    FirebaseService.database.ref('tracks').on('value', () => emit(FETCH_PLAY_QUEUE.REQUEST));
-    FirebaseService.database.ref('currentTrack').on('value', () => emit(FETCH_CURRENT_TRACK.REQUEST));
+    PlayerAPI.addPlayQueueListener(() => emit(FETCH_PLAY_QUEUE.REQUEST));
+    PlayerAPI.addCurrentTrackListener(() => emit(FETCH_CURRENT_TRACK.REQUEST));
     return () => {};
   });
 }
