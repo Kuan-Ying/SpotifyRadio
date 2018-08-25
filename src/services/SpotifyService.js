@@ -13,11 +13,18 @@ class SpotifyService {
     if (!this.accessToken) {
       // TODO: refactor client_id and redirect_uri into seperate file
       const { client_id, redirect_uri } = config.spotify;
-      const scopes = ['user-read-private', 'user-read-email', 'user-modify-playback-state'];
+      const scope = [
+        'user-read-private',
+        'user-read-email',
+        'user-modify-playback-state',
+        'user-read-birthdate',
+        'user-read-currently-playing',
+        'streaming',
+      ];
       const params = {
         response_type: 'token',
         client_id,
-        scopes,
+        scope,
         redirect_uri,
       };
       const queryString = Object.keys(params).map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`).join('&');
