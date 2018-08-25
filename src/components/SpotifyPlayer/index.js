@@ -5,7 +5,7 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { Segment } from 'semantic-ui-react';
 
-import spotify, {
+import {
   SpotifyActionCreators,
   isLoadingPlayerSelector,
 } from '../../redux/modules/spotify';
