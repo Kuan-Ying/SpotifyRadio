@@ -5,7 +5,7 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { Segment } from 'semantic-ui-react';
 
-import spotify, {
+import {
   SpotifyActionCreators,
   isLoadingPlayerSelector,
 } from '../../redux/modules/spotify';
@@ -17,14 +17,12 @@ import TrackList from './TrackList';
 import TrackPlayControl from './TrackPlayControl';
 
 const PlayControlSegment = styled(Segment).attrs({
-  loading: ({ isLoading }) => isLoading,
   compact: true,
 })`
   padding: 0 !important;
 `;
 
 const TrackListSegment = styled(Segment).attrs({
-  loading: ({ isLoading }) => isLoading,
   compact: true,
 })`
   background: black !important;
@@ -101,7 +99,7 @@ class SpotifyPlayer extends Component {
 
     return (
       <SegmentWraper>
-        <PlayControlSegment isLoading={isLoading}>
+        <PlayControlSegment loading={isLoading}>
           <TrackPlayControl
             trackInfo={trackInfo}
             togglePlay={this.togglePlay}
@@ -110,10 +108,9 @@ class SpotifyPlayer extends Component {
             onNext={this.nextTrack}
           />
         </PlayControlSegment>
-        <TrackListSegment>
+        <TrackListSegment loading={isLoading}>
           <TrackList
             tracks={tracks}
-            isLoading={isLoading}
             onPlay={this.play}
             onRemove={this.removeFromQueue}
           />

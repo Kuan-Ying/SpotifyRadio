@@ -13,7 +13,7 @@ const StyledHeader = styled(Header).attrs({
 const TrackInfo = ({ songName, artistsDisplayName }) => (
   <StyledHeader>
     {songName}
-    <Header.Subheader inverted color="grey">
+    <Header.Subheader color="grey">
       {artistsDisplayName}
     </Header.Subheader>
   </StyledHeader>

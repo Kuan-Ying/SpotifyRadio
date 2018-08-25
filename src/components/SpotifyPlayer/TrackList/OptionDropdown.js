@@ -28,7 +28,7 @@ export default class extends Component {
     } = this.props;
     return (
       <StyledDropdown
-        visible={visible}
+        visible={visible ? 1 : 0}
       >
         <Dropdown.Menu>
           <Dropdown.Item text="Remove from Queue" onClick={onClick} />

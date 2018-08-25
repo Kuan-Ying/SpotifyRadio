@@ -71,7 +71,7 @@ export default class extends React.Component {
               <PlayStatus isPlaying={isPlaying} index={index} />
               <PlayIcon
                 onClick={() => onPlay(spotifyUri)}
-                visible={showPlayIconAt === index && !isPlaying}
+                visible={showPlayIconAt === index && !isPlaying ? 1 : 0}
               />
               <Text
                 isPlaying={isPlaying}
