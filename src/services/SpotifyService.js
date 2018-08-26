@@ -9,9 +9,12 @@ class SpotifyService {
 
   constructor() {
     const authUrl = 'https://accounts.spotify.com/authorize';
-    this.getAccessTokenFromRoute();
-    if (!this.accessToken) {
-      // TODO: refactor client_id and redirect_uri into seperate file
+    this.accessToken = window.localStorage.getItem('access_token');
+    const expireTime = window.localStorage.getItem('expire_time');
+    if (!this.accessToken
+      || `${this.accessToken}` === 'undefined'
+      || expireTime <= Date.now()) {
+      this.getAccessTokenFromRoute();
       const { client_id, redirect_uri } = config.spotify;
       const scope = [
         'user-read-private',
@@ -30,6 +33,9 @@ class SpotifyService {
       const queryString = Object.keys(params).map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`).join('&');
       window.location.href = `${authUrl}?${queryString}`;
     }
+    if (window.location.href.includes('callback')) {
+      window.location.href = '/';
+    }
   }
 
   getAccessTokenFromRoute = () => {
@@ -44,7 +50,8 @@ class SpotifyService {
 	  while (e = r.exec(q)) {
       hashParams[e[1]] = decodeURIComponent(e[2]);
     }
-    this.accessToken = hashParams.access_token;
+    window.localStorage.setItem('access_token', hashParams.access_token);
+    window.localStorage.setItem('expire_time', Date.now() + (3600 * 1000));
   }
 
   // NOTE: Spotify player
