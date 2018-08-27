@@ -10,12 +10,28 @@ const StyledHeader = styled(Header).attrs({
   padding-top: 10px;
 `;
 
+const TrackName = styled.span`
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 200px;
+  display: block;
+  overflow: hidden;
+`;
+
+const ArtistName = styled(Header.Subheader).attrs({
+  color: 'grey',
+})`
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 200px;
+  display: block;
+  overflow: hidden;
+`;
+
 const TrackInfo = ({ songName, artistsDisplayName }) => (
   <StyledHeader>
-    {songName}
-    <Header.Subheader color="grey">
-      {artistsDisplayName}
-    </Header.Subheader>
+    <TrackName>{songName}</TrackName>
+    <ArtistName>{artistsDisplayName}</ArtistName>
   </StyledHeader>
 );
 

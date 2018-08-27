@@ -26,6 +26,24 @@ const PlayIcon = styled(List.Icon).attrs({
   visibility: ${({ visible }) => (visible ? 'visible' : 'hidden')};
 `;
 
+const StyledSpan = styled.span`
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block !important;
+  width: 200px;
+  overflow: hidden;
+`;
+
+const SongName = styled(({ isPlaying, name }) => (
+  <Text
+    isPlaying={isPlaying}
+    activecolor="#42f46e"
+    inactivecolor="grey"
+  >
+    <StyledSpan>{name}</StyledSpan>
+  </Text>
+))``;
+
 export default class extends React.Component {
   static propTypes = {
     tracks: PropTypes.array.isRequired,
@@ -60,6 +78,7 @@ export default class extends React.Component {
               key={songName}
               onMouseEnter={() => this.setState({ showOptionsAt: index, showPlayIconAt: index })}
               onMouseLeave={() => this.setState({ showOptionsAt: -1, showPlayIconAt: -1 })}
+              onDoubleClick={() => onPlay(spotifyUri)}
             >
               <List.Content floated="right" >
                 <OptionDropdown
@@ -73,14 +92,10 @@ export default class extends React.Component {
                 onClick={() => onPlay(spotifyUri)}
                 visible={showPlayIconAt === index && !isPlaying ? 1 : 0}
               />
-              <Text
+              <SongName
                 isPlaying={isPlaying}
-                onClick={() => onPlay(spotifyUri)}
-                activecolor="#42f46e"
-                inactivecolor="grey"
-              >
-                {songName}
-              </Text>
+                name={songName}
+              />
             </List.Item>))
         }
       </StyledList>

@@ -46,6 +46,12 @@ class SearchModal extends Component {
     </Button>
   );
 
+  handleEnter = ({ key }) => {
+    if (key === 'Enter') {
+      this.search();
+    }
+  };
+
   render() {
     const {
       query,
@@ -58,7 +64,10 @@ class SearchModal extends Component {
     return (
       <div>
         <Input icon placeholder="Search...">
-          <input onChange={({ target: { value } }) => this.setState({ query: value })} />
+          <input
+            onChange={({ target: { value } }) => this.setState({ query: value })}
+            onKeyPress={this.handleEnter}
+          />
         </Input>
         <Modal
           open={isModalVisible}
