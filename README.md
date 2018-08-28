@@ -7,9 +7,9 @@ SpotifyRadio aims to provide a live streaming platform using [Spotify Web Playba
 <img src="https://i.imgur.com/QpZJVN9.png" width="600">
 
 # Featuring
-- React, Redux, Redux Saga
+- React, Redux, Redux Saga, React-Router
 - Semantic UI React, Styled Components
-- Spotify Web API, 
+- Spotify Web API, Spotify Web Playback SDK
 - Firebase
 
 # User story
