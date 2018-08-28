@@ -1,11 +1,6 @@
 # Introduction
 SpotifyRadio aims to provide a live streaming platform using [Spotify Web Playback SDK](https://developer.spotify.com/documentation/web-playback-sdk/reference/) and [Spotify Web API](https://developer.spotify.com/documentation/web-api/reference/).
 
-# Progress
-- React/Redux spotify player, support add/remove song to play queue
-- Sync play queue with firebase
--- 
-
 <img src="https://i.imgur.com/5kgeKs5.png" width="600">
 <img src="https://i.imgur.com/QpZJVN9.png" width="600">
 
@@ -50,7 +45,6 @@ yarn start-prod
 
 
 # TODOs:
-- Renew Spotify user token after it expires
-- Sync logic with firebase
-- Refactor the way to obtain Spotify user token
-- Chat room with firebase
+- Renew Spotify user token after it expires (currently it is using Implicit Grant Flow)
+- Redirect logic after access token is obtained
+- sharing link
