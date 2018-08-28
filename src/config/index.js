@@ -1,29 +1,25 @@
 import defaultConfig from './default';
 
-const {
-  NODE_ENV,
-  REACT_APP_CONFIG_ENV,
-  CONFIG_ENV,
-} = process.env;
+const { REACT_APP_RUNTIME_CONFIG_ENV: configEnv } = process.env;
 
-let configEnv;
 let config;
-
-// when the app is running in production mode
-if (NODE_ENV === 'production') {
-  configEnv = CONFIG_ENV;
-} else {
-  configEnv = REACT_APP_CONFIG_ENV || 'production'; // default to production if unspecified
-}
 
 switch (configEnv) {
   case 'dev':
-  case 'development':
+  case 'development': {
+    const { default: devConfig } = require('./dev');
+    config = { ...defaultConfig, ...devConfig };
+    break;
+  }
   case 'prod':
-  case 'production':
-  default: {
+  case 'production': {
     const { default: prodConfig } = require('./prod');
     config = { ...defaultConfig, ...prodConfig };
+    break;
+  }
+  default: {
+    const { default: devConfig } = require('./dev');
+    config = { ...defaultConfig, ...devConfig };
     break;
   }
 }
