@@ -1,14 +1,15 @@
-import Cookie from 'js-cookie';
-
 import defaultConfig from './default';
 
-const { NODE_ENV, REACT_APP_CONFIG_ENV } = process.env;
-const CONFIG_ENV = Cookie.get('CONFIG_ENV');
+const {
+  NODE_ENV,
+  REACT_APP_CONFIG_ENV,
+  CONFIG_ENV,
+} = process.env;
 
 let configEnv;
 let config;
 
-// when the app is running in production mode, e.g. through docker images
+// when the app is running in production mode
 if (NODE_ENV === 'production') {
   configEnv = CONFIG_ENV; // use the env setting value in the cookie
 } else {
@@ -41,7 +42,5 @@ switch (configEnv) {
 // to prevent eslint error:
 // error  Exporting mutable 'let' binding, use 'const' instead  import/no-mutable-exports
 const exportedConfig = config;
-
-console.log(config);
 
 export default exportedConfig;
