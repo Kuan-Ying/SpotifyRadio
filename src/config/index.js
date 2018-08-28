@@ -5,12 +5,12 @@ const { REACT_APP_RUNTIME_CONFIG_ENV: configEnv } = process.env;
 let config;
 
 switch (configEnv) {
-  case 'dev':
-  case 'development': {
-    const { default: devConfig } = require('./dev');
-    config = { ...defaultConfig, ...devConfig };
-    break;
-  }
+  // case 'dev':
+  // case 'development': {
+  //   const { default: devConfig } = require('./dev');
+  //   config = { ...defaultConfig, ...devConfig };
+  //   break;
+  // }
   case 'prod':
   case 'production': {
     const { default: prodConfig } = require('./prod');
@@ -18,8 +18,8 @@ switch (configEnv) {
     break;
   }
   default: {
-    const { default: devConfig } = require('./dev');
-    config = { ...defaultConfig, ...devConfig };
+    const { default: prodConfig } = require('./prod');
+    config = { ...defaultConfig, ...prodConfig };
     break;
   }
 }
