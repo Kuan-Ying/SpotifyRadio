@@ -41,8 +41,10 @@
     "start-dev": "REACT_APP_CONFIG_ENV=dev PORT=3000 react-scripts start",
     "start-prod": "REACT_APP_CONFIG_ENV=prod PORT=3000 react-scripts start",
     "test": "react-scripts test --env=jsdom",
+    "build": "react-scripts build",
     "eject": "react-scripts eject",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "heroku-postbuild": "npm run build"
   },
   "importSort": {
     ".js, .jsx, .es6, .es": {

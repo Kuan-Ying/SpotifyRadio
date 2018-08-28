@@ -11,7 +11,7 @@ let config;
 
 // when the app is running in production mode
 if (NODE_ENV === 'production') {
-  configEnv = CONFIG_ENV; // use the env setting value in the cookie
+  configEnv = CONFIG_ENV;
 } else {
   // if app is running in dev mode, e.g. by `yarn start` or `REACT_APP_CONFIG_ENV=local yarn start`
   // use the env variable to determine which env config to use
