@@ -59,7 +59,7 @@ class LandingPage extends Component {
               marginTop: mobile ? '0.5em' : '1.5em',
             }}
           >
-            A demonstrate of live streaming platform integrated with {' '}
+            A demonstration of live streaming platform integrated with {' '}
             <a href="https://developer.spotify.com/documentation/web-playback-sdk/reference/">Spotify Web Playback SDK</a>{' '}and{' '}
             <a href="https://developer.spotify.com/documentation/web-api/reference/">Spotify Web API</a>.
           </Header>
