@@ -2,6 +2,9 @@
   "name": "spotify-radio",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "8.9.x"
+  },
   "devDependencies": {
     "@storybook/react": "^3.2.8",
     "eslint": "^4.4.1",
