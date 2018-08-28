@@ -1,8 +1,6 @@
 import Cookie from 'js-cookie';
 
 import defaultConfig from './default';
-import devConfig from './dev';
-import prodConfig from './prod';
 
 const { NODE_ENV, REACT_APP_CONFIG_ENV } = process.env;
 const CONFIG_ENV = Cookie.get('CONFIG_ENV');
@@ -22,16 +20,19 @@ if (NODE_ENV === 'production') {
 switch (configEnv) {
   case 'dev':
   case 'development': {
+    const { default: devConfig } = require('./dev');
     config = { ...defaultConfig, ...devConfig };
     break;
   }
   case 'prod':
   case 'production': {
+    const { default: prodConfig } = require('./prod');
     config = { ...defaultConfig, ...prodConfig };
     break;
   }
   case 'local':
   default: {
+    const { default: devConfig } = require('./dev');
     config = { ...defaultConfig, ...devConfig };
     break;
   }
@@ -40,5 +41,7 @@ switch (configEnv) {
 // to prevent eslint error:
 // error  Exporting mutable 'let' binding, use 'const' instead  import/no-mutable-exports
 const exportedConfig = config;
+
+console.log(config);
 
 export default exportedConfig;
