@@ -18,20 +18,12 @@ if (NODE_ENV === 'production') {
 
 switch (configEnv) {
   case 'dev':
-  case 'development': {
-    const { default: devConfig } = require('./dev');
-    config = { ...defaultConfig, ...devConfig };
-    break;
-  }
+  case 'development':
   case 'prod':
-  case 'production': {
+  case 'production':
+  default: {
     const { default: prodConfig } = require('./prod');
     config = { ...defaultConfig, ...prodConfig };
-    break;
-  }
-  default: {
-    const { default: devConfig } = require('./dev');
-    config = { ...defaultConfig, ...devConfig };
     break;
   }
 }
