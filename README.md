@@ -40,10 +40,10 @@ export default {
 
 ## Start
 ### connect to dev server API
-yarn start / yarn start-dev
+yarn start-dev
 
 ### connect to prod server API
-yarn start-prod
+yarn start / yarn start-prod
 
 
 # TODOs:
