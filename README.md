@@ -4,9 +4,10 @@ SpotifyRadio aims to provide a live streaming platform using [Spotify Web Playba
 # Progress
 - React/Redux spotify player, support add/remove song to play queue
 - Sync play queue with firebase
+-- 
 
-<img src="https://i.imgur.com/d0zeX0M.png" width="300">
-<img src="https://i.imgur.com/3PBDtA5.png" width="600">
+<img src="https://i.imgur.com/5kgeKs5.png" width="600">
+<img src="https://i.imgur.com/QpZJVN9.png" width="600">
 
 # Featuring
 - React, Redux, Redux Saga
