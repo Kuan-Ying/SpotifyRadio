@@ -136,6 +136,31 @@ class SpotifyService {
     }
     return { status: response.status, data };
   }
+
+  // NOTE: users
+  getCurrentUserProfile = async () => {
+    const response = await fetch('https://api.spotify.com/v1/me', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.accessToken}`,
+      },
+    });
+    const data = await response.json();
+    return { status: response.status, data };
+  }
+
+  getUserProfile = async (userId) => {
+    const response = await fetch(`https://api.spotify.com/v1/users/${userId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.accessToken}`,
+      },
+    });
+    const data = await response.json();
+    return { status: response.status, data };
+  }
 }
 
 export default new SpotifyService();
