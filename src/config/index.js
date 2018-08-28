@@ -13,12 +13,8 @@ let config;
 if (NODE_ENV === 'production') {
   configEnv = CONFIG_ENV;
 } else {
-  // if app is running in dev mode, e.g. by `yarn start` or `REACT_APP_CONFIG_ENV=local yarn start`
-  // use the env variable to determine which env config to use
-  configEnv = REACT_APP_CONFIG_ENV || 'development'; // default to development if unspecified
+  configEnv = REACT_APP_CONFIG_ENV || 'production'; // default to production if unspecified
 }
-
-console.log(configEnv, process.env);
 
 switch (configEnv) {
   case 'dev':
