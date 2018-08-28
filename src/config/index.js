@@ -5,6 +5,7 @@ const { REACT_APP_RUNTIME_CONFIG_ENV: configEnv } = process.env;
 let config;
 
 switch (configEnv) {
+  // NOTE: need to figure out how to resolve this bug on heroku
   // case 'dev':
   // case 'development': {
   //   const { default: devConfig } = require('./dev');
