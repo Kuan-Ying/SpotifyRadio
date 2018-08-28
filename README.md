@@ -1,5 +1,5 @@
 # Introduction
-SpotifyRadio is a demonstration a live streaming platform, including collaborative play queue and chat room, using [Spotify Web Playback SDK](https://developer.spotify.com/documentation/web-playback-sdk/reference/), [Spotify Web API](https://developer.spotify.com/documentation/web-api/reference/) and Firebase Realtime Database. 
+SpotifyRadio is a demonstration a live streaming platform, including collaborative play queues and chat rooms, using [Spotify Web Playback SDK](https://developer.spotify.com/documentation/web-playback-sdk/reference/), [Spotify Web API](https://developer.spotify.com/documentation/web-api/reference/) and Firebase Realtime Database. 
 
 [Live demo](https://secure-spire-91250.herokuapp.com/)
 
