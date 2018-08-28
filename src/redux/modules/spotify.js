@@ -16,6 +16,7 @@ import {
 import SpotifyService from '../../services/SpotifyService';
 import PlayerAPI from '../../API/PlayerAPI';
 import actionTypesCreator from '../../helpers/actionTypesCreator';
+import { roomIdSelector } from './room';
 
 // NOTE: shared selectors
 export const isLoadingPlayerSelector = state => state.spotify.isLoading;
@@ -63,7 +64,8 @@ export const SpotifyActionCreators = createActions(
 
 // NOTE: Sagas
 function* fetchCurrentTrack() {
-  const remoteCurrentTrack = yield call(PlayerAPI.fetchCurrentTrack);
+  const roomId = yield select(roomIdSelector);
+  const remoteCurrentTrack = yield call(PlayerAPI.fetchCurrentTrack, roomId);
   const localCurrentTrack = yield select(currentTrackSelector);
   const { position: localPosition } = yield select(currentPlayerStateSelector);
   if (!_.isEmpty(remoteCurrentTrack)) {
@@ -79,7 +81,8 @@ function* fetchCurrentTrack() {
 
 function* fetchPlayQueue() {
   try {
-    const result = yield call(PlayerAPI.fetchPlayQueue);
+    const roomId = yield select(roomIdSelector);
+    const result = yield call(PlayerAPI.fetchPlayQueue, roomId);
     if (!result) {
       yield put(SpotifyActionCreators.fetchPlayQueueFailure('cannot find play queue'));
     }
@@ -91,7 +94,8 @@ function* fetchPlayQueue() {
 
 function* addTrackToPlayQueue({ payload: trackData }) {
   try {
-    yield call(PlayerAPI.addTrackToPlayQueue, trackData);
+    const roomId = yield select(roomIdSelector);
+    yield call(PlayerAPI.addTrackToPlayQueue, { roomId, trackData });
     yield put(SpotifyActionCreators.addTrackToPlayQueueSuccess());
     yield put(SpotifyActionCreators.fetchPlayQueueRequest());
   } catch (e) {
@@ -101,7 +105,8 @@ function* addTrackToPlayQueue({ payload: trackData }) {
 
 function* removeTrackFromPlayQueue({ payload: trackId }) {
   try {
-    yield call(PlayerAPI.removeTrackFromPlayQueue, trackId);
+    const roomId = yield select(roomIdSelector);
+    yield call(PlayerAPI.removeTrackFromPlayQueue, { roomId, trackId });
     yield put(SpotifyActionCreators.removeTrackFromPlayQueueSuccess());
     yield put(SpotifyActionCreators.fetchPlayQueueRequest());
   } catch (e) {
@@ -111,13 +116,15 @@ function* removeTrackFromPlayQueue({ payload: trackId }) {
 
 function* previousTrack() {
   try {
-    const queue = yield call(PlayerAPI.fetchPlayQueue);
-    const { index } = yield call(PlayerAPI.fetchCurrentTrack);
+    const roomId = yield select(roomIdSelector);
+    const queue = yield call(PlayerAPI.fetchPlayQueue, roomId);
+    const { index } = yield call(PlayerAPI.fetchCurrentTrack, roomId);
     const updatedTrack = queue[((_.size(queue) + index) - 1) % _.size(queue)];
-    yield call(PlayerAPI.updateCurrentTrack, {
+    const track = {
       ...updatedTrack,
       index: _.findIndex(queue, updatedTrack),
-    });
+    };
+    yield call(PlayerAPI.updateCurrentTrack, { roomId, track });
     const { spotifyUri } = updatedTrack;
     yield put(SpotifyActionCreators.playRequest({ spotifyUri }));
     yield put(SpotifyActionCreators.previousTrackSuccess());
@@ -129,13 +136,15 @@ function* previousTrack() {
 
 function* nextTrack() {
   try {
-    const queue = yield call(PlayerAPI.fetchPlayQueue);
-    const { index } = yield call(PlayerAPI.fetchCurrentTrack);
+    const roomId = yield select(roomIdSelector);
+    const queue = yield call(PlayerAPI.fetchPlayQueue, roomId);
+    const { index } = yield call(PlayerAPI.fetchCurrentTrack, roomId);
     const updatedTrack = queue[(index + 1) % _.size(queue)];
-    yield call(PlayerAPI.updateCurrentTrack, {
+    const track = {
       ...updatedTrack,
       index: _.findIndex(queue, updatedTrack),
-    });
+    };
+    yield call(PlayerAPI.updateCurrentTrack, { roomId, track });
     const { spotifyUri } = updatedTrack;
     yield put(SpotifyActionCreators.playRequest({ spotifyUri }));
     yield put(SpotifyActionCreators.nextTrackSuccess());
@@ -164,6 +173,7 @@ function* searchTracks({ payload: query }) {
 function* getCurrentPlayerState() {
   try {
     const queue = yield select(currentPlayQueueSelector);
+    const roomId = yield select(roomIdSelector);
     const result = yield call(SpotifyService.getCurrentState);
     if (!_.isEmpty(result) && !_.isEmpty(queue)) {
       const {
@@ -176,13 +186,14 @@ function* getCurrentPlayerState() {
         duration: durationMs,
         position: positionMs,
       } = result;
-      yield call(PlayerAPI.updateCurrentTrack, {
+      const track = {
         spotifyUri,
         durationMs,
         songName,
         positionMs,
         index: _.findIndex(queue, ({ spotifyUri: target }) => target === spotifyUri),
-      });
+      };
+      yield call(PlayerAPI.updateCurrentTrack, { roomId, track });
       if (!result.paused && positionMs >= durationMs - 600) {
         yield put(SpotifyActionCreators.nextTrackRequest());
       }
@@ -194,21 +205,28 @@ function* getCurrentPlayerState() {
   }
 }
 
-function getCurrentPlayerStateChannel() {
+function getCurrentPlayerStateChannel(roomId) {
   return eventChannel((emit) => {
     // NOTE: synchronize player state for every 1s.
     setInterval(() => {
       emit(GET_CURRENT_PLAYER_STATE.REQUEST);
     }, 600);
     SpotifyService.player.on('player_state_changed', () => emit(GET_CURRENT_PLAYER_STATE.REQUEST));
-    PlayerAPI.addPlayQueueListener(() => emit(FETCH_PLAY_QUEUE.REQUEST));
-    PlayerAPI.addCurrentTrackListener(() => emit(FETCH_CURRENT_TRACK.REQUEST));
+    PlayerAPI.addPlayQueueListener({
+      roomId,
+      callback: () => emit(FETCH_PLAY_QUEUE.REQUEST),
+    });
+    PlayerAPI.addPlayQueueListener({
+      roomId,
+      callback: () => emit(FETCH_CURRENT_TRACK.REQUEST),
+    });
     return () => {};
   });
 }
 
 function* watchPlayerStateChange() {
-  const changeChannel = yield call(getCurrentPlayerStateChannel);
+  const roomId = yield select(roomIdSelector);
+  const changeChannel = yield call(getCurrentPlayerStateChannel, roomId);
   while (true) {
     const action = yield take(changeChannel);
     if (action === GET_CURRENT_PLAYER_STATE.REQUEST) {
@@ -253,7 +271,7 @@ function* seek({ payload: percent }) {
 
 function* initPlayer() {
   try {
-    const result = yield call(SpotifyService.initPlayerAsync, 'Kuan\'s player');
+    const result = yield call(SpotifyService.initPlayerAsync, 'Spotify Radio');
     yield call(fetchCurrentTrack);
     yield put(SpotifyActionCreators.initPlayerSuccess(result));
     yield call(watchPlayerStateChange);

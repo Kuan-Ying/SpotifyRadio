@@ -1,17 +1,17 @@
 import FirebaseService from '../services/FirebaseService';
 
 export default {
-  fetchPlayQueue: async () => FirebaseService.readArray('tracks'),
+  fetchPlayQueue: async roomId => FirebaseService.readArray(`${roomId}/tracks`),
 
-  addTrackToPlayQueue: async trackData => FirebaseService.push('tracks', trackData),
+  addTrackToPlayQueue: async ({ roomId, trackData }) => FirebaseService.push(`${roomId}/tracks`, trackData),
 
-  removeTrackFromPlayQueue: async trackId => FirebaseService.removeChild('tracks', trackId),
+  removeTrackFromPlayQueue: async ({ roomId, trackId }) => FirebaseService.removeChild(`${roomId}/tracks`, trackId),
 
-  addPlayQueueListener: callback => FirebaseService.database.ref('tracks').on('value', callback),
+  addPlayQueueListener: ({ roomId, callback }) => FirebaseService.database.ref(`${roomId}/tracks`).on('value', callback),
 
-  fetchCurrentTrack: async () => FirebaseService.read('currentTrack'),
+  fetchCurrentTrack: async roomId => FirebaseService.read(`${roomId}/currentTrack`),
 
-  updateCurrentTrack: async track => FirebaseService.write('currentTrack', track),
+  updateCurrentTrack: async ({ roomId, track }) => FirebaseService.write(`${roomId}/currentTrack`, track),
 
-  addCurrentTrackListener: callback => FirebaseService.database.ref('currentTrack').on('value', callback),
+  addCurrentTrackListener: ({ roomId, callback }) => FirebaseService.database.ref(`${roomId}/currentTrack`).on('value', callback),
 };

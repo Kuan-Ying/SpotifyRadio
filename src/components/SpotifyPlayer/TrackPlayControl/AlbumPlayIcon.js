@@ -18,6 +18,7 @@ const AlbumPlayIcon = ({
     dimmed={active}
     onMouseEnter={onMouseEnter}
     onMouseLeave={onMouseLeave}
+    style={{ width: 150, height: 150 }}
   >
     <Image src={albumImg} size="small" />
     <Dimmer active={active || !isPlaying}>
